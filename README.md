@@ -17,4 +17,5 @@
 <h1 align="center" style="color:#f4eddc;">DIFFERENT THEMES AVAILABLE</h1>
 
 <img width="1200" height="831" alt="ciber" src="https://github.com/user-attachments/assets/3f1cb4b4-ca08-4f2a-8a8a-aafaae67087d" />
+<h2 style="color:#FFFFFF;">GAMING RGB</h1>
 <img width="1200" height="831" alt="rgb" src="https://github.com/user-attachments/assets/6efa8774-d7fe-4b79-8252-374ba9668470" />
