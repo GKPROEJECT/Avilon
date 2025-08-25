@@ -1,6 +1,6 @@
 <h1 align="center" style="color:#f4eddc;">ALL MAPS IN ONE PLACE</h1>
-<h1 align="center" style="color:#FF5733;">🎮 Avilon</h1>
-<h3 align="center" style="color:#FF8C00;">All Your Maps in One Place 🗺️</h3>
+<h1 align="center" style="color:#FF5733;">🎮 Avilon All Your Maps in One Place 🗺️</h1>
+
 
 <p align="center" style="font-size:18px; color:#555;">
 Welcome to <strong>Avilon</strong>, a game management program <strong>developed by a single passionate developer</strong>! 🚀
