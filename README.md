@@ -28,6 +28,7 @@ Avilon is designed to be <strong>simple, powerful, and user-friendly</strong>, g
 <h1 align="center" style="color:#f4eddc;">FAVORITES SYSTEM</h1>
 
 <img width="1201" height="833" alt="fav" src="https://github.com/user-attachments/assets/ad39e36d-9d0d-4cae-b03b-ca43bdecdac9" />
+![gif fav](https://github.com/user-attachments/assets/9c91d5bb-3cd8-4f7e-b2bd-2ce78674b097)
 
 
 <h1 align="center" style="color:#f4eddc;">DIFFERENT THEMES AVAILABLE</h1>
