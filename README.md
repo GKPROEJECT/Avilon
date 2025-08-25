@@ -1,23 +1,31 @@
 <h1 align="center" style="color:#f4eddc;">ALL MAPS IN ONE PLACE</h1>
+<h1 align="center" style="color:#FF5733;">🎮 Avilon</h1>
+<h3 align="center" style="color:#FF8C00;">All Your Maps in One Place 🗺️</h3>
 
-<h1 align="center" style="color:#FF5733;">🎮 Avilon - Your Ultimate Game Map Manager 🗺️</h1>
-
-<p align="center" style="font-size:18px;">
+<p align="center" style="font-size:18px; color:#555;">
 Welcome to <strong>Avilon</strong>, a game management program <strong>developed by a single passionate developer</strong>! 🚀
 </p>
 
 <h2 align="center" style="color:#33A1FF;">✨ Key Features ✨</h2>
 
 <ul>
-  <li>🕹️ <strong>Add & Edit Games:</strong> Customize your games by editing their <strong>name, image, and maps</strong>.</li>
-  <li>🌐 <strong>Multi-language Support:</strong> Use Avilon in your preferred language.</li>
-  <li>📝 <strong>User Guide Included:</strong> Step-by-step instructions to get you started quickly.</li>
-  <li>🎨 <strong>Themes Galore:</strong> Choose from numerous themes to make the app <strong>look and feel your way</strong>.</li>
+  <li>🕹️ <strong>Add & Edit Games:</strong> Customize your games by editing their <strong>name, image, and maps</strong>. 🎨</li>
+  <li>🌐 <strong>Multi-language Support:</strong> Enjoy Avilon in your preferred language. 🗣️</li>
+  <li>📝 <strong>User Guide Included:</strong> Step-by-step instructions to get started quickly. 📚</li>
+  <li>🎨 <strong>Themes Galore:</strong> Choose from numerous themes to make the app <strong>look and feel your way</strong>. 🌈</li>
 </ul>
 
 <p align="center" style="color:#28A745; font-size:16px;">
 Avilon is designed to be <strong>simple, powerful, and user-friendly</strong>, giving you the ability to manage all your game maps in one place. Perfect for gamers who want <strong>organization, customization, and style</strong>! 🌟
 </p>
+
+<h2 align="center" style="color:#FF5733;">🐞 Known Issues 🐞</h2>
+
+<ul>
+  <li>⚠️ Translation problems in some windows or sections of the program.</li>
+</ul>
+
+
 
 <h2 align="center" style="color:#FF5733;">🐞 Known Issues 🐞</h2>
 
