@@ -1,4 +1,4 @@
-<h1>ALL MAPS IN ONE PLACE</h1>
+<h1 align="center" style="color:#eadabb;">ALL MAPS IN ONE PLACE</h1>
 
 
 
