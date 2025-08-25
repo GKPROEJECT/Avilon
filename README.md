@@ -22,6 +22,6 @@
 <img width="1197" height="828" alt="image" src="https://github.com/user-attachments/assets/8643039f-abd2-4fb5-82ba-7bff856cb309" />
 
 
-### Known Issues
+<h1 align="center" style="color:#f4eddc;">Known Issues</h1>
 
 - Translation problems in some windows or sections of the program.
