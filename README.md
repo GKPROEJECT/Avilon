@@ -19,22 +19,6 @@ Welcome to <strong>Avilon</strong>, a game management program <strong>developed 
 Avilon is designed to be <strong>simple, powerful, and user-friendly</strong>, giving you the ability to manage all your game maps in one place. Perfect for gamers who want <strong>organization, customization, and style</strong>! 🌟
 </p>
 
-<h2 align="center" style="color:#FF5733;">🐞 Known Issues 🐞</h2>
-
-<ul>
-  <li>⚠️ Translation problems in some windows or sections of the program.</li>
-</ul>
-
-
-
-<h2 align="center" style="color:#FF5733;">🐞 Known Issues 🐞</h2>
-
-<ul>
-  <li>Translation problems in some windows or sections of the program.</li>
-</ul>
-
-
-
 
 
 
@@ -53,8 +37,9 @@ Avilon is designed to be <strong>simple, powerful, and user-friendly</strong>, g
 
 <img width="1197" height="828" alt="image" src="https://github.com/user-attachments/assets/8643039f-abd2-4fb5-82ba-7bff856cb309" />
 
-### Known Issues
+<h2 align="center" style="color:#FF5733;">🐞 Known Issues 🐞</h2>
 
-- Translation problems in some windows or sections of the program.
-
+<ul>
+  <li>⚠️ Translation problems in some windows or sections of the program.</li>
+</ul>
 
