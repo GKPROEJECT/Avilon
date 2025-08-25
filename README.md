@@ -1,4 +1,4 @@
-<h1 align="center" style="color:#f4eddc;">ALL MAPS IN ONE PLACE</h1>
+
 <h1 align="center" style="color:#FF5733;">🎮 Avilon All Your Maps in One Place 🗺️</h1>
 
 
