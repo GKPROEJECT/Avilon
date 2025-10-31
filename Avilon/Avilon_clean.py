@@ -1,4 +1,4 @@
-﻿# -*- coding: utf-8 -*-
+﻿    # -*- coding: utf-8 -*-
 import tkinter as tk
 from tkinter import ttk, filedialog, messagebox, simpledialog
 import json
