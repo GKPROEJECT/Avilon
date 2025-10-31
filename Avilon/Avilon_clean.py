@@ -2188,8 +2188,8 @@ class AvalonGameManager:
                 'accent': '#7289da',
                 'accent_hover': '#677bc4',
                 'text': '#ffffff',
-                'text_primary': '#ffffff',
-                'text_secondary': '#99aab5',
+                'text_primary': "#FFFFFF",
+                'text_secondary': "#ffffff",
                 'text_muted': '#99aab5',
                 'success': '#43b581',
                 'danger': '#f04747',
@@ -2267,8 +2267,8 @@ class AvalonGameManager:
                 'sidebar': '#0f0f1a',
                 'accent': '#ff00ff',
                 'accent_hover': '#e600e6',
-                'text': '#ffffff',
-                'text_primary': '#ffffff',
+                'text': "#FFFFFF",
+                'text_primary': "#FFFFFF",
                 'text_secondary': '#cccccc',
                 'text_muted': '#aaaaaa',
                 'success': '#00ff88',
@@ -4147,15 +4147,7 @@ class AvalonGameManager:
         # Combobox para seleccionar idioma
         languages = [
             ('es', self.get_text('spanish')),
-            ('en', self.get_text('english')),
-            ('fr', self.get_text('french')),
-            ('de', self.get_text('german')),
-            ('it', self.get_text('italian')),
-            ('pt', self.get_text('portuguese')),
-            ('nl', self.get_text('dutch')),
-            ('ru', self.get_text('russian')),
-            ('ja', self.get_text('japanese')),
-            ('zh', self.get_text('chinese'))
+            ('en', self.get_text('english'))
         ]
         
         # Variable para almacenar solo el código del idioma
