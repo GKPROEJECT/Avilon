@@ -26,7 +26,8 @@ Incluye opciones para buscar localizaciones, registrar progreso, consultar mapas
 Avilon/
 ├── src/ # Código fuente de avilon
 ├── avilon_clean.spec/ # Archivo de cfg para crear el exe
-├── config/ # Archivos de configuración
+├── Avilon_config/ # array donde se almacena la cfg que ponga el usuario final en el programa
+├── Avilon_games/ # array donde se almacena los juegos que añada a Avilon el usurio final de el programa
 ├── requirements.txt # Dependencias del proyecto
 └── avilon_clean.py # Archivo principal de ejecución y con el que se trabaja
 ```
@@ -74,6 +75,7 @@ git commit -m "Descripción de la mejora"
 
 ## 🛠 Tecnologías utilizadas
 - Python 3.13.9
+- HTML
 - Librerías específicas (PILLOW, WEBVIEW(PyInstaller si lo usas))
 - Git y GitHub para control de versiones
 
