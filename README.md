@@ -51,7 +51,8 @@ cd Avilon
 ## ▶️ Ejecución
 Para iniciar Avilon:
   - Usa cualquier editor de codigo
-  - Instala todas las dependencias necesarias para que funcione el programa en tu editor de codigo, tal y como se indica el [requirements.txt](Avilon/requirements.txt).
+  - Instala todas las dependencias necesarias para que funcione el programa en tu editor de codigo, tal y como se indica el Para instalar las dependencias, revisa [requirements.txt](requirements.txt)
+.
   - ejecuta avilon_clean.py en la terminal
 
 
