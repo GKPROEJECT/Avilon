@@ -1,5 +1,6 @@
 # Avilon
 
+![banner git](https://github.com/user-attachments/assets/45a29041-bcab-4305-9505-2276d0042b4d)
 
 Avilon es un **programa para gestionar mapas, guías, rutas, secretos y contenido auxiliar de videojuegos multiplataforma**. Su objetivo es centralizar toda la información útil de distintos juegos en una sola aplicación rápida, clara y fácil de usar, permitiendo al jugador acceder a datos de manera ordenada y visual.
 
