@@ -222,7 +222,7 @@ class SplashScreen:
         
         # Versión
         self.version_id = self.canvas.create_text(
-            250, 320, text="v1.5.9", 
+            250, 320, text="version 1.6.2", 
             font=('Segoe UI', 9),
             fill='#808080', anchor='center'
         )
@@ -709,6 +709,7 @@ class AvalonGameManager:
                 'games_count': 'juegos',
                 'game_singular': 'juego',
                 'no_games': 'No hay juegos en tu biblioteca.\nVe a "Archivo" → "Añadir Juego" para comenzar.',
+                'no_games_search': 'No se encontraron juegos que coincidan con la búsqueda',
                 'search_placeholder': 'Buscar juegos... (favoritos siempre visibles)',
                 
                 # Formulario añadir juego
@@ -921,6 +922,7 @@ class AvalonGameManager:
                 'games_count': 'games',
                 'game_singular': 'game',
                 'no_games': 'No games in your library.\nGo to "File" → "Add Game" to get started.',
+                'no_games_search': 'No games found matching your search',
                 'search_placeholder': 'Search games... (favorites always visible)',
                 
                 # Add game form
@@ -1133,6 +1135,7 @@ class AvalonGameManager:
                 'games_count': 'jeux',
                 'game_singular': 'jeu',
                 'no_games': 'Aucun jeu dans votre bibliothèque.\nAllez dans "Fichier" → "Ajouter un jeu" pour commencer.',
+                'no_games_search': 'Aucun jeu trouvé correspondant à votre recherche',
                 'search_placeholder': 'Rechercher des jeux... (favoris toujours visibles)',
                 
                 # Add game form
@@ -1224,6 +1227,80 @@ class AvalonGameManager:
                 'startup_disabled': 'Programme retiré du démarrage automatique',
                 'startup_error': 'Erreur lors de la configuration du démarrage automatique',
                 
+                # Configuration sections
+                'config_section_language_desc': 'Sélectionnez la langue de l\'interface',
+                'config_section_theme_desc': 'Choisissez le thème visuel de l\'application',
+                'config_section_startup_desc': 'Démarrez Avilon automatiquement avec Windows',
+                'startup_auto_start_label': ' ✓ Démarrer automatiquement avec Windows',
+                
+                # User Guide
+                'how_to_use_menu': 'Comment utiliser',
+                'user_guide_title': 'Guide Utilisateur - Comment utiliser Avilon',
+                'guide_tab_games': 'Jeux',
+                'guide_tab_maps': 'Cartes',
+                'guide_tab_features': 'Fonctionnalités',
+                'guide_tab_tips': 'Conseils',
+                
+                # Games tab
+                'guide_games_title': '🎮 Gestion des Jeux',
+                'guide_games_add_title': '📝 Comment ajouter un jeu:',
+                'guide_games_add_content': '''1. Allez au menu "Fichier" → "Ajouter un jeu"
+2. Complétez le nom du jeu
+3. Sélectionnez une image (facultatif):
+   • Formats supportés: PNG, JPG, JPEG, BMP, GIF
+   • Recommandé: 250x280 pixels
+4. Configurez la carte (voir onglet "Cartes")
+5. Cliquez sur "Enregistrer"''',
+                'guide_games_manage_title': '⚙️ Gérer les jeux existants:',
+                'guide_games_manage_content': '''• Cliquez sur ⭐ pour marquer/démarquer comme favori
+• Utilisez "Voir la carte" pour ouvrir la carte du jeu
+• "Modifier" pour modifier les données du jeu
+• "Supprimer" pour supprimer le jeu de la bibliothèque''',
+                
+                # Maps tab
+                'guide_maps_title': '🗺️ Configuration des Cartes',
+                'guide_maps_types_title': '📋 Types de cartes supportés:',
+                'guide_maps_image_title': '🖼️ Cartes Image:',
+                'guide_maps_image_content': '''• Formats: PNG, JPG, JPEG, BMP, GIF
+• Fonctionnalités: Zoom, panoramique, plein écran
+• Idéal pour les cartes de jeu statiques''',
+                'guide_maps_web_title': '🌐 Cartes Web (iframe):',
+                'guide_maps_web_content': '''• N\'importe quelle URL valide (http:// ou https://)
+• Cartes interactives en ligne
+• Wikis de jeu, guides web, etc.
+• S\'ouvre dans une fenêtre intégrée''',
+                
+                # Features tab
+                'guide_features_title': '✨ Fonctionnalités Principales',
+                'guide_features_search_title': '🔍 Système de Recherche:',
+                'guide_features_search_content': '''• Rechercher par nom de jeu
+• Les favoris restent toujours visibles
+• Filtres: "Tous" et "Favoris"''',
+                'guide_features_themes_title': '🎨 Thèmes et Personnalisation:',
+                'guide_features_themes_content': '''• 5 thèmes disponibles: Ardoise, Sombre, Clair, Bleu, Vert
+• Support de plusieurs langues
+• Paramètres enregistrés automatiquement''',
+                'guide_features_startup_title': '🚀 Démarrage Automatique:',
+                'guide_features_startup_content': '''• Configurable depuis les Paramètres
+• Démarre avec Windows s\'il est activé
+• Activation/désactivation facile''',
+                
+                # Tips tab
+                'guide_tips_title': '💡 Conseils et Astuces',
+                'guide_tips_organization_title': '📚 Organisation:',
+                'guide_tips_organization_content': '''• Utilisez des noms descriptifs pour vos jeux
+• Marquez comme favoris les jeux que vous utilisez souvent
+• Organisez les images par catégories''',
+                'guide_tips_images_title': '🖼️ Meilleures Pratiques pour les Images:',
+                'guide_tips_images_content': '''• Utilisez des images de bonne qualité
+• Taille recommandée: 250x280 pixels
+• Évitez les images très lourdes (>5MB)''',
+                'guide_tips_maps_title': '🗺️ Conseils pour les Cartes:',
+                'guide_tips_maps_content': '''• Pour les cartes web, vérifiez que l\'URL est accessible
+• Les grandes cartes images peuvent être zoomées
+• Utilisez des cartes interactives si possible''',
+                
+                # Keyboard Shortcuts tab - Already exists below
                 # Pestaña Atajos de Teclado
                 'guide_tab_shortcuts': 'Raccourcis Clavier',
                 'guide_shortcuts_title': '⌨️ Raccourcis Clavier',
@@ -1248,7 +1325,10 @@ class AvalonGameManager:
 2. Ctrl + F pour rechercher sans utiliser la souris
 3. Échap pour effacer et recommencer
 4. Ctrl + Shift + F pour voir seulement les favoris
-5. F5 pour actualiser lors d'ajouts manuels de fichiers'''
+5. F5 pour actualiser lors d'ajouts manuels de fichiers''',
+                
+                # Guide subtitle
+                'guide_subtitle': 'Tout ce que vous devez savoir pour utiliser Avilon'
             },
             
             'de': {
@@ -1271,6 +1351,7 @@ class AvalonGameManager:
                 'games_count': 'Spiele',
                 'game_singular': 'Spiel',
                 'no_games': 'Keine Spiele in Ihrer Bibliothek.\nGehen Sie zu "Datei" → "Spiel hinzufügen", um zu beginnen.',
+                'no_games_search': 'Keine Spiele gefunden, die Ihrer Suche entsprechen',
                 'search_placeholder': 'Spiele suchen... (Favoriten immer sichtbar)',
                 
                 # Add game form
@@ -1362,6 +1443,80 @@ class AvalonGameManager:
                 'startup_disabled': 'Programm aus automatischem Start entfernt',
                 'startup_error': 'Fehler beim Konfigurieren des automatischen Starts',
                 
+                # Configuration sections
+                'config_section_language_desc': 'Wählen Sie die Schnittstelle Sprache',
+                'config_section_theme_desc': 'Wählen Sie das visuelle Design der Anwendung',
+                'config_section_startup_desc': 'Starten Sie Avilon automatisch mit Windows',
+                'startup_auto_start_label': ' ✓ Automatisch mit Windows starten',
+                
+                # User Guide
+                'how_to_use_menu': 'Gebrauchsanleitung',
+                'user_guide_title': 'Benutzerhandbuch - Wie man Avilon verwendet',
+                'guide_tab_games': 'Spiele',
+                'guide_tab_maps': 'Karten',
+                'guide_tab_features': 'Funktionen',
+                'guide_tab_tips': 'Tipps',
+                
+                # Games tab
+                'guide_games_title': '🎮 Spielverwaltung',
+                'guide_games_add_title': '📝 Wie man ein Spiel hinzufügt:',
+                'guide_games_add_content': '''1. Gehen Sie zum Menü "Datei" → "Spiel hinzufügen"
+2. Füllen Sie den Spielnamen aus
+3. Wählen Sie ein Bild (optional):
+   • Unterstützte Formate: PNG, JPG, JPEG, BMP, GIF
+   • Empfohlen: 250x280 Pixel
+4. Konfigurieren Sie die Karte (siehe Reiter "Karten")
+5. Klicken Sie auf "Speichern"''',
+                'guide_games_manage_title': '⚙️ Vorhandene Spiele verwalten:',
+                'guide_games_manage_content': '''• Klicken Sie auf ⭐, um als Favorit zu markieren/aufzuheben
+• Verwenden Sie "Karte anzeigen", um die Spielkarte zu öffnen
+• "Bearbeiten", um Spieldaten zu ändern
+• "Löschen", um das Spiel aus der Bibliothek zu entfernen''',
+                
+                # Maps tab
+                'guide_maps_title': '🗺️ Kartenkonfiguration',
+                'guide_maps_types_title': '📋 Unterstützte Kartentypen:',
+                'guide_maps_image_title': '🖼️ Bildkarten:',
+                'guide_maps_image_content': '''• Formate: PNG, JPG, JPEG, BMP, GIF
+• Funktionen: Zoom, Schwenken, Vollbildmodus
+• Ideal für statische Spielkarten''',
+                'guide_maps_web_title': '🌐 Webbkarten (iframe):',
+                'guide_maps_web_content': '''• Jede gültige URL (http:// oder https://)
+• Interaktive Online-Karten
+• Spiel-Wikis, Web-Handbücher, etc.
+• Öffnet sich in integriertem Fenster''',
+                
+                # Features tab
+                'guide_features_title': '✨ Hauptfunktionen',
+                'guide_features_search_title': '🔍 Suchsystem:',
+                'guide_features_search_content': '''• Nach Spielname suchen
+• Favoriten bleiben immer sichtbar
+• Filter: "Alle" und "Favoriten"''',
+                'guide_features_themes_title': '🎨 Themen und Anpassung:',
+                'guide_features_themes_content': '''• 5 verfügbare Themen: Schiefer, Dunkel, Hell, Blau, Grün
+• Unterstützung mehrerer Sprachen
+• Einstellungen werden automatisch gespeichert''',
+                'guide_features_startup_title': '🚀 Automatischer Start:',
+                'guide_features_startup_content': '''• Konfigurierbar aus den Einstellungen
+• Startet mit Windows, wenn aktiviert
+• Einfache Aktivierung/Deaktivierung''',
+                
+                # Tips tab
+                'guide_tips_title': '💡 Tipps und Tricks',
+                'guide_tips_organization_title': '📚 Organisation:',
+                'guide_tips_organization_content': '''• Verwenden Sie beschreibende Namen für Ihre Spiele
+• Markieren Sie häufig verwendete Spiele als Favoriten
+• Organisieren Sie Bilder nach Kategorien''',
+                'guide_tips_images_title': '🖼️ Best Practices für Bilder:',
+                'guide_tips_images_content': '''• Verwenden Sie Bilder in guter Qualität
+• Empfohlene Größe: 250x280 Pixel
+• Vermeiden Sie sehr große Bilder (>5MB)''',
+                'guide_tips_maps_title': '🗺️ Kartentipps:',
+                'guide_tips_maps_content': '''• Überprüfen Sie bei Webkarten, ob die URL erreichbar ist
+• Große Bildkarten können vergrößert werden
+• Verwenden Sie interaktive Karten wenn möglich''',
+                
+                # Keyboard Shortcuts tab - Already exists below
                 # Pestaña Atajos de Teclado
                 'guide_tab_shortcuts': 'Tastenkürzel',
                 'guide_shortcuts_title': '⌨️ Tastenkürzel',
@@ -1386,7 +1541,10 @@ class AvalonGameManager:
 2. Strg + F zum Suchen ohne Maus
 3. Escape zum Löschen und Neubeginn
 4. Strg + Shift + F um nur Favoriten zu sehen
-5. F5 zum Aktualisieren bei manuellen Dateiänderungen'''
+5. F5 zum Aktualisieren bei manuellen Dateiänderungen''',
+                
+                # Guide subtitle
+                'guide_subtitle': 'Alles, was Sie über die Verwendung von Avilon wissen müssen'
             },
             
             'it': {
@@ -1409,6 +1567,7 @@ class AvalonGameManager:
                 'games_count': 'giochi',
                 'game_singular': 'gioco',
                 'no_games': 'Nessun gioco nella tua libreria.\nVai su "File" → "Aggiungi gioco" per iniziare.',
+                'no_games_search': 'Nessun gioco trovato corrispondente alla tua ricerca',
                 'search_placeholder': 'Cerca giochi... (preferiti sempre visibili)',
                 
                 # Add game form
@@ -1498,7 +1657,109 @@ class AvalonGameManager:
                 'startup_label': 'Avvia con Windows:',
                 'startup_enabled': 'Programma configurato per avviarsi con Windows',
                 'startup_disabled': 'Programma rimosso dall\'avvio automatico',
-                'startup_error': 'Errore durante la configurazione dell\'avvio automatico'
+                'startup_error': 'Errore durante la configurazione dell\'avvio automatico',
+                
+                # Configuration sections
+                'config_section_language_desc': 'Seleziona la lingua dell\'interfaccia',
+                'config_section_theme_desc': 'Scegli il tema visivo dell\'applicazione',
+                'config_section_startup_desc': 'Avvia Avilon automaticamente con Windows',
+                'startup_auto_start_label': ' ✓ Avvia automaticamente con Windows',
+                
+                # User Guide
+                'how_to_use_menu': 'Come usare',
+                'user_guide_title': 'Guida Utente - Come usare Avilon',
+                'guide_tab_games': 'Giochi',
+                'guide_tab_maps': 'Mappe',
+                'guide_tab_features': 'Caratteristiche',
+                'guide_tab_tips': 'Suggerimenti',
+                
+                # Games tab
+                'guide_games_title': '🎮 Gestione Giochi',
+                'guide_games_add_title': '📝 Come aggiungere un gioco:',
+                'guide_games_add_content': '''1. Vai al menu "File" → "Aggiungi gioco"
+2. Completa il nome del gioco
+3. Seleziona un\'immagine (facoltativo):
+   • Formati supportati: PNG, JPG, JPEG, BMP, GIF
+   • Consigliato: 250x280 pixel
+4. Configura la mappa (vedi tab "Mappe")
+5. Fai clic su "Salva"''',
+                'guide_games_manage_title': '⚙️ Gestisci giochi esistenti:',
+                'guide_games_manage_content': '''• Fai clic su ⭐ per contrassegnare/deselezionare come preferito
+• Usa "Visualizza mappa" per aprire la mappa del gioco
+• "Modifica" per modificare i dati del gioco
+• "Elimina" per rimuovere il gioco dalla libreria''',
+                
+                # Maps tab
+                'guide_maps_title': '🗺️ Configurazione Mappe',
+                'guide_maps_types_title': '📋 Tipi di mappe supportate:',
+                'guide_maps_image_title': '🖼️ Mappe Immagine:',
+                'guide_maps_image_content': '''• Formati: PNG, JPG, JPEG, BMP, GIF
+• Funzioni: Zoom, panoramica, schermo intero
+• Ideale per mappe statiche del gioco''',
+                'guide_maps_web_title': '🌐 Mappe Web (iframe):',
+                'guide_maps_web_content': '''• Qualsiasi URL valido (http:// o https://)
+• Mappe interattive online
+• Wiki di giochi, guide web, ecc.
+• Si apre in finestra integrata''',
+                
+                # Features tab
+                'guide_features_title': '✨ Caratteristiche Principali',
+                'guide_features_search_title': '🔍 Sistema di Ricerca:',
+                'guide_features_search_content': '''• Cerca per nome del gioco
+• I preferiti rimangono sempre visibili
+• Filtri: "Tutti" e "Preferiti"''',
+                'guide_features_themes_title': '🎨 Temi e Personalizzazione:',
+                'guide_features_themes_content': '''• 5 temi disponibili: Lavagna, Scuro, Chiaro, Blu, Verde
+• Supporto per più lingue
+• Impostazioni salvate automaticamente''',
+                'guide_features_startup_title': '🚀 Avvio Automatico:',
+                'guide_features_startup_content': '''• Configurabile dalle Impostazioni
+• Si avvia con Windows se abilitato
+• Facile attivazione/disattivazione''',
+                
+                # Tips tab
+                'guide_tips_title': '💡 Suggerimenti e Trucchi',
+                'guide_tips_organization_title': '📚 Organizzazione:',
+                'guide_tips_organization_content': '''• Usa nomi descrittivi per i tuoi giochi
+• Contrassegna come preferiti i giochi più usati
+• Organizza le immagini per categorie''',
+                'guide_tips_images_title': '🖼️ Best Practice per Immagini:',
+                'guide_tips_images_content': '''• Usa immagini ad alta risoluzione
+• Dimensione consigliata: 250x280 pixel
+• Evita immagini molto pesanti (>5MB)''',
+                'guide_tips_maps_title': '🗺️ Suggerimenti per Mappe:',
+                'guide_tips_maps_content': '''• Per mappe web, verifica che l\'URL sia accessibile
+• Le mappe immagine grandi possono essere ingrandite
+• Usa mappe interattive quando possibile''',
+                
+                # Keyboard Shortcuts tab
+                'guide_tab_shortcuts': 'Scorciatoie da Tastiera',
+                'guide_shortcuts_title': '⌨️ Scorciatoie da Tastiera',
+                'guide_shortcuts_subtitle': 'Accelera il tuo lavoro con questi utili scorciatoi da tastiera',
+                'guide_shortcuts_games_title': '🎮 Gestione Giochi',
+                'guide_shortcuts_games_content': '''• Ctrl + N - Aggiungi nuovo gioco
+• Ctrl + F - Cerca giochi
+• Escape - Cancella ricerca
+• F5 - Aggiorna lista dei giochi
+• Ctrl + Shift + F - Attiva/disattiva visualizzazione preferiti''',
+                'guide_shortcuts_navigation_title': '🧭 Navigazione e Impostazioni',
+                'guide_shortcuts_navigation_content': '''• F1 - Apri guida utente
+• Ctrl + Shift + P - Apri impostazioni
+• Ctrl + Q - Esci dall\'applicazione''',
+                'guide_shortcuts_tips_title': '💡 Suggerimenti per Scorciatoi',
+                'guide_shortcuts_tips_content': '''• Gli scorciatoi funzionano ovunque nell\'applicazione
+• Puoi usare maiuscole e minuscole
+• Il tasto Escape cancella sempre la ricerca corrente
+• F1 è il tuo tasto di aiuto rapido''',
+                'guide_shortcuts_workflow_title': '⚡ Flusso di Lavoro Veloce',
+                'guide_shortcuts_workflow_content': '''1. Ctrl + N per aggiungere giochi rapidamente
+2. Ctrl + F per cercare senza usare il mouse
+3. Escape per cancellare e ricominciare
+4. Ctrl + Shift + F per visualizzare solo i preferiti
+5. F5 per aggiornare quando aggiungi file manualmente''',
+                
+                # Guide subtitle
+                'guide_subtitle': 'Tutto quello che devi sapere per usare Avilon'
             },
             
             'pt': {
@@ -1521,6 +1782,7 @@ class AvalonGameManager:
                 'games_count': 'jogos',
                 'game_singular': 'jogo',
                 'no_games': 'Nenhum jogo na sua biblioteca.\nVá para "Arquivo" → "Adicionar jogo" para começar.',
+                'no_games_search': 'Nenhum jogo encontrado correspondente à sua pesquisa',
                 'search_placeholder': 'Buscar jogos... (favoritos sempre visíveis)',
                 
                 # Add game form
@@ -1610,7 +1872,109 @@ class AvalonGameManager:
                 'startup_label': 'Iniciar com Windows:',
                 'startup_enabled': 'Programa configurado para iniciar com Windows',
                 'startup_disabled': 'Programa removido do início automático',
-                'startup_error': 'Erro ao configurar o início automático'
+                'startup_error': 'Erro ao configurar o início automático',
+                
+                # Configuration sections
+                'config_section_language_desc': 'Selecione o idioma da interface',
+                'config_section_theme_desc': 'Escolha o tema visual da aplicação',
+                'config_section_startup_desc': 'Inicie Avilon automaticamente com Windows',
+                'startup_auto_start_label': ' ✓ Iniciar automaticamente com Windows',
+                
+                # User Guide
+                'how_to_use_menu': 'Como usar',
+                'user_guide_title': 'Guia do Usuário - Como usar Avilon',
+                'guide_tab_games': 'Jogos',
+                'guide_tab_maps': 'Mapas',
+                'guide_tab_features': 'Recursos',
+                'guide_tab_tips': 'Dicas',
+                
+                # Games tab
+                'guide_games_title': '🎮 Gerenciamento de Jogos',
+                'guide_games_add_title': '📝 Como adicionar um jogo:',
+                'guide_games_add_content': '''1. Vá para o menu "Arquivo" → "Adicionar Jogo"
+2. Preencha o nome do jogo
+3. Selecione uma imagem (opcional):
+   • Formatos suportados: PNG, JPG, JPEG, BMP, GIF
+   • Recomendado: 250x280 pixels
+4. Configure o mapa (veja aba "Mapas")
+5. Clique em "Salvar"''',
+                'guide_games_manage_title': '⚙️ Gerenciar jogos existentes:',
+                'guide_games_manage_content': '''• Clique em ⭐ para marcar/desmarcar como favorito
+• Use "Ver mapa" para abrir o mapa do jogo
+• "Editar" para modificar dados do jogo
+• "Excluir" para remover o jogo da biblioteca''',
+                
+                # Maps tab
+                'guide_maps_title': '🗺️ Configuração de Mapas',
+                'guide_maps_types_title': '📋 Tipos de mapas suportados:',
+                'guide_maps_image_title': '🖼️ Mapas de Imagem:',
+                'guide_maps_image_content': '''• Formatos: PNG, JPG, JPEG, BMP, GIF
+• Recursos: Zoom, panorâmica, tela inteira
+• Ideal para mapas estáticos do jogo''',
+                'guide_maps_web_title': '🌐 Mapas Web (iframe):',
+                'guide_maps_web_content': '''• Qualquer URL válida (http:// ou https://)
+• Mapas interativos online
+• Wikis de jogos, guias web, etc.
+• Abre em janela integrada''',
+                
+                # Features tab
+                'guide_features_title': '✨ Recursos Principais',
+                'guide_features_search_title': '🔍 Sistema de Pesquisa:',
+                'guide_features_search_content': '''• Pesquisar por nome do jogo
+• Favoritos sempre permanecem visíveis
+• Filtros: "Todos" e "Favoritos"''',
+                'guide_features_themes_title': '🎨 Temas e Personalização:',
+                'guide_features_themes_content': '''• 5 temas disponíveis: Lousa, Escuro, Claro, Azul, Verde
+• Suporte para múltiplos idiomas
+• Configurações salvas automaticamente''',
+                'guide_features_startup_title': '🚀 Inicialização Automática:',
+                'guide_features_startup_content': '''• Configurável nas Configurações
+• Inicia com Windows se habilitado
+• Fácil ativação/desativação''',
+                
+                # Tips tab
+                'guide_tips_title': '💡 Dicas e Truques',
+                'guide_tips_organization_title': '📚 Organização:',
+                'guide_tips_organization_content': '''• Use nomes descritivos para seus jogos
+• Marque como favoritos os jogos mais usados
+• Organize as imagens por categorias''',
+                'guide_tips_images_title': '🖼️ Melhores Práticas para Imagens:',
+                'guide_tips_images_content': '''• Use imagens com boa resolução
+• Tamanho recomendado: 250x280 pixels
+• Evite imagens muito pesadas (>5MB)''',
+                'guide_tips_maps_title': '🗺️ Dicas para Mapas:',
+                'guide_tips_maps_content': '''• Para mapas web, verifique se a URL está acessível
+• Mapas de imagem grandes podem ser ampliados
+• Use mapas interativos quando possível''',
+                
+                # Keyboard Shortcuts tab
+                'guide_tab_shortcuts': 'Atalhos de Teclado',
+                'guide_shortcuts_title': '⌨️ Atalhos de Teclado',
+                'guide_shortcuts_subtitle': 'Acelere seu trabalho com estes atalhos de teclado úteis',
+                'guide_shortcuts_games_title': '🎮 Gerenciamento de Jogos',
+                'guide_shortcuts_games_content': '''• Ctrl + N - Adicionar novo jogo
+• Ctrl + F - Pesquisar jogos
+• Escape - Limpar pesquisa
+• F5 - Atualizar lista de jogos
+• Ctrl + Shift + F - Alternar visualização de favoritos''',
+                'guide_shortcuts_navigation_title': '🧭 Navegação e Configurações',
+                'guide_shortcuts_navigation_content': '''• F1 - Abrir guia do usuário
+• Ctrl + Shift + P - Abrir configurações
+• Ctrl + Q - Sair da aplicação''',
+                'guide_shortcuts_tips_title': '💡 Dicas para Atalhos',
+                'guide_shortcuts_tips_content': '''• Os atalhos funcionam em qualquer lugar da aplicação
+• Você pode usar maiúsculas e minúsculas
+• A tecla Escape sempre limpa a pesquisa atual
+• F1 é sua tecla de ajuda rápida''',
+                'guide_shortcuts_workflow_title': '⚡ Fluxo de Trabalho Rápido',
+                'guide_shortcuts_workflow_content': '''1. Ctrl + N para adicionar jogos rapidamente
+2. Ctrl + F para pesquisar sem usar o mouse
+3. Escape para limpar e começar novamente
+4. Ctrl + Shift + F para ver apenas favoritos
+5. F5 para atualizar ao adicionar arquivos manualmente''',
+                
+                # Guide subtitle
+                'guide_subtitle': 'Tudo que você precisa saber para usar Avilon'
             },
             
             'nl': {
@@ -1633,6 +1997,7 @@ class AvalonGameManager:
                 'games_count': 'spellen',
                 'game_singular': 'spel',
                 'no_games': 'Geen spellen in je bibliotheek.\nGa naar "Bestand" → "Spel toevoegen" om te beginnen.',
+                'no_games_search': 'Geen spellen gevonden die overeenkomen met je zoekopdracht',
                 'search_placeholder': 'Zoek spellen... (favorieten altijd zichtbaar)',
                 
                 # Add game form
@@ -1722,7 +2087,109 @@ class AvalonGameManager:
                 'startup_label': 'Starten met Windows:',
                 'startup_enabled': 'Programma ingesteld om te starten met Windows',
                 'startup_disabled': 'Programma verwijderd van automatisch opstarten',
-                'startup_error': 'Fout bij het instellen van automatisch opstarten'
+                'startup_error': 'Fout bij het instellen van automatisch opstarten',
+                
+                # Configuration sections
+                'config_section_language_desc': 'Selecteer de taal van de interface',
+                'config_section_theme_desc': 'Kies het visuele thema van de applicatie',
+                'config_section_startup_desc': 'Start Avilon automatisch met Windows',
+                'startup_auto_start_label': ' ✓ Automatisch starten met Windows',
+                
+                # User Guide
+                'how_to_use_menu': 'Hoe te gebruiken',
+                'user_guide_title': 'Gebruikershandleiding - Hoe Avilon te gebruiken',
+                'guide_tab_games': 'Spellen',
+                'guide_tab_maps': 'Kaarten',
+                'guide_tab_features': 'Kenmerken',
+                'guide_tab_tips': 'Tips',
+                
+                # Games tab
+                'guide_games_title': '🎮 Spelbeheer',
+                'guide_games_add_title': '📝 Een spel toevoegen:',
+                'guide_games_add_content': '''1. Ga naar menu "Bestand" → "Spel toevoegen"
+2. Voer de spelnaam in
+3. Selecteer een afbeelding (optioneel):
+   • Ondersteunde formaten: PNG, JPG, JPEG, BMP, GIF
+   • Aanbevolen: 250x280 pixels
+4. Configureer de kaart (zie tab "Kaarten")
+5. Klik op "Opslaan"''',
+                'guide_games_manage_title': '⚙️ Bestaande spellen beheren:',
+                'guide_games_manage_content': '''• Klik op ⭐ om als favoriet in/uit te schakelen
+• Gebruik "Kaart weergeven" om de kaart van het spel te openen
+• "Bewerken" om spelgegevens aan te passen
+• "Verwijderen" om het spel uit je bibliotheek te verwijderen''',
+                
+                # Maps tab
+                'guide_maps_title': '🗺️ Kaartconfiguratie',
+                'guide_maps_types_title': '📋 Ondersteunde kaarttypen:',
+                'guide_maps_image_title': '🖼️ Afbeeldingskaarten:',
+                'guide_maps_image_content': '''• Formaten: PNG, JPG, JPEG, BMP, GIF
+• Functies: Zoomen, pannen, volledig scherm
+• Ideaal voor statische spelkaarten''',
+                'guide_maps_web_title': '🌐 Webkaarten (iframe):',
+                'guide_maps_web_content': '''• Elke geldige URL (http:// of https://)
+• Interactieve online kaarten
+• Spelwiki\'s, webgidsen, enz.
+• Opent in geïntegreerd venster''',
+                
+                # Features tab
+                'guide_features_title': '✨ Hoofdfuncties',
+                'guide_features_search_title': '🔍 Zoeksysteem:',
+                'guide_features_search_content': '''• Zoeken op spelnaam
+• Favorieten blijven altijd zichtbaar
+• Filters: "Alle" en "Favorieten"''',
+                'guide_features_themes_title': '🎨 Thema\'s en Aanpassing:',
+                'guide_features_themes_content': '''• 5 beschikbare thema\'s: Lei, Donker, Licht, Blauw, Groen
+• Ondersteuning voor meerdere talen
+• Instellingen automatisch opgeslagen''',
+                'guide_features_startup_title': '🚀 Automatisch Starten:',
+                'guide_features_startup_content': '''• Configureerbaar vanuit Instellingen
+• Start met Windows als ingeschakeld
+• Gemakkelijke in/uitschakeling''',
+                
+                # Tips tab
+                'guide_tips_title': '💡 Tips en Trucs',
+                'guide_tips_organization_title': '📚 Organisatie:',
+                'guide_tips_organization_content': '''• Gebruik beschrijvende namen voor je spellen
+• Markeer veel gebruikte spellen als favoriet
+• Organiseer afbeeldingen naar categorie\'ën''',
+                'guide_tips_images_title': '🖼️ Beste Praktijken voor Afbeeldingen:',
+                'guide_tips_images_content': '''• Gebruik afbeeldingen met goede resolutie
+• Aanbevolen grootte: 250x280 pixels
+• Vermijd zeer zware afbeeldingen (>5MB)''',
+                'guide_tips_maps_title': '🗺️ Kaart Tips:',
+                'guide_tips_maps_content': '''• Voor webkaarten, controleer of de URL toegankelijk is
+• Grote afbeeldingskaarten kunnen worden ingezoomd
+• Gebruik interactieve kaarten waar mogelijk''',
+                
+                # Keyboard Shortcuts tab
+                'guide_tab_shortcuts': 'Toetsenbord Snelkoppelingen',
+                'guide_shortcuts_title': '⌨️ Toetsenbord Snelkoppelingen',
+                'guide_shortcuts_subtitle': 'Versnel je werk met deze nuttige toetsenbordssnelkoppelingen',
+                'guide_shortcuts_games_title': '🎮 Spelbeheer',
+                'guide_shortcuts_games_content': '''• Ctrl + N - Nieuw spel toevoegen
+• Ctrl + F - Spellen zoeken
+• Escape - Zoekopdracht wissen
+• F5 - Spellenlijst vernieuwen
+• Ctrl + Shift + F - Favorieten weergave omschakelen''',
+                'guide_shortcuts_navigation_title': '🧭 Navigatie en Instellingen',
+                'guide_shortcuts_navigation_content': '''• F1 - Gebruikershandleiding openen
+• Ctrl + Shift + P - Instellingen openen
+• Ctrl + Q - Toepassing afsluiten''',
+                'guide_shortcuts_tips_title': '💡 Snelkoppeling Tips',
+                'guide_shortcuts_tips_content': '''• Snelkoppelingen werken overal in de toepassing
+• Je kunt zowel hoofd- als kleine letters gebruiken
+• Escape wist altijd de huidige zoekopdracht
+• F1 is je snelle hulptoets''',
+                'guide_shortcuts_workflow_title': '⚡ Snelle Workflow',
+                'guide_shortcuts_workflow_content': '''1. Ctrl + N om snel spellen toe te voegen
+2. Ctrl + F om te zoeken zonder muis
+3. Escape om op te schonen en opnieuw te beginnen
+4. Ctrl + Shift + F om alleen favorieten te zien
+5. F5 om te vernieuwen bij handmatige bestandstoevoegingen''',
+                
+                # Guide subtitle
+                'guide_subtitle': 'Alles wat je moet weten om Avilon te gebruiken'
             },
             
             'ru': {
@@ -1745,6 +2212,7 @@ class AvalonGameManager:
                 'games_count': 'игр',
                 'game_singular': 'игра',
                 'no_games': 'Нет игр в вашей библиотеке.\nПерейдите в "Файл" → "Добавить игру", чтобы начать.',
+                'no_games_search': 'Не найдено игр, соответствующих вашему поиску',
                 'search_placeholder': 'Поиск игр... (избранные всегда видимы)',
                 
                 # Add game form
@@ -1834,7 +2302,109 @@ class AvalonGameManager:
                 'startup_label': 'Запуск с Windows:',
                 'startup_enabled': 'Программа настроена для запуска с Windows',
                 'startup_disabled': 'Программа удалена из автозапуска',
-                'startup_error': 'Ошибка настройки автозапуска'
+                'startup_error': 'Ошибка настройки автозапуска',
+                
+                # Configuration sections
+                'config_section_language_desc': 'Выберите язык интерфейса',
+                'config_section_theme_desc': 'Выберите визуальную тему приложения',
+                'config_section_startup_desc': 'Запустите Avilon автоматически с Windows',
+                'startup_auto_start_label': ' ✓ Запускать автоматически с Windows',
+                
+                # User Guide
+                'how_to_use_menu': 'Как использовать',
+                'user_guide_title': 'Руководство пользователя - Как использовать Avilon',
+                'guide_tab_games': 'Игры',
+                'guide_tab_maps': 'Карты',
+                'guide_tab_features': 'Возможности',
+                'guide_tab_tips': 'Советы',
+                
+                # Games tab
+                'guide_games_title': '🎮 Управление Играми',
+                'guide_games_add_title': '📝 Как добавить игру:',
+                'guide_games_add_content': '''1. Перейдите в меню "Файл" → "Добавить игру"
+2. Введите название игры
+3. Выберите изображение (опционально):
+   • Поддерживаемые форматы: PNG, JPG, JPEG, BMP, GIF
+   • Рекомендуется: 250x280 пиксели
+4. Настройте карту (см. вкладку "Карты")
+5. Нажмите "Сохранить"''',
+                'guide_games_manage_title': '⚙️ Управление существующими играми:',
+                'guide_games_manage_content': '''• Нажмите на ⭐ для отмечения/отмены отметки избранного
+• Используйте "Показать карту" для открытия карты игры
+• "Редактировать" для изменения данных игры
+• "Удалить" для удаления игры из библиотеки''',
+                
+                # Maps tab
+                'guide_maps_title': '🗺️ Настройка Карт',
+                'guide_maps_types_title': '📋 Поддерживаемые типы карт:',
+                'guide_maps_image_title': '🖼️ Карты-Изображения:',
+                'guide_maps_image_content': '''• Форматы: PNG, JPG, JPEG, BMP, GIF
+• Функции: Масштабирование, панорамирование, полноэкранный режим
+• Идеально для статических карт игры''',
+                'guide_maps_web_title': '🌐 Веб-Карты (iframe):',
+                'guide_maps_web_content': '''• Любой действительный URL (http:// или https://)
+• Интерактивные онлайн-карты
+• Wiki игр, веб-гайды и т. д.
+• Открывается в встроенном окне''',
+                
+                # Features tab
+                'guide_features_title': '✨ Основные Возможности',
+                'guide_features_search_title': '🔍 Система Поиска:',
+                'guide_features_search_content': '''• Поиск по названию игры
+• Избранные всегда остаются видимыми
+• Фильтры: "Все" и "Избранные"''',
+                'guide_features_themes_title': '🎨 Темы и Настройка:',
+                'guide_features_themes_content': '''• 5 доступных тем: Сланец, Темная, Светлая, Синяя, Зеленая
+• Поддержка нескольких языков
+• Параметры сохраняются автоматически''',
+                'guide_features_startup_title': '🚀 Автоматический Запуск:',
+                'guide_features_startup_content': '''• Настраивается из Параметров
+• Запускается с Windows, если включено
+• Легкое включение/отключение''',
+                
+                # Tips tab
+                'guide_tips_title': '💡 Советы и Трюки',
+                'guide_tips_organization_title': '📚 Организация:',
+                'guide_tips_organization_content': '''• Используйте описательные названия для ваших игр
+• Отметьте часто используемые игры как избранные
+• Организуйте изображения по категориям''',
+                'guide_tips_images_title': '🖼️ Лучшие Практики для Изображений:',
+                'guide_tips_images_content': '''• Используйте изображения хорошего качества
+• Рекомендуемый размер: 250x280 пиксели
+• Избегайте очень больших изображений (>5MB)''',
+                'guide_tips_maps_title': '🗺️ Советы по Картам:',
+                'guide_tips_maps_content': '''• Для веб-карт проверьте доступность URL
+• Большие карты-изображения можно масштабировать
+• По возможности используйте интерактивные карты''',
+                
+                # Keyboard Shortcuts tab
+                'guide_tab_shortcuts': 'Горячие Клавиши',
+                'guide_shortcuts_title': '⌨️ Горячие Клавиши',
+                'guide_shortcuts_subtitle': 'Ускорьте свою работу с помощью этих полезных сочетаний клавиш',
+                'guide_shortcuts_games_title': '🎮 Управление Играми',
+                'guide_shortcuts_games_content': '''• Ctrl + N - Добавить новую игру
+• Ctrl + F - Поиск игр
+• Escape - Очистить поиск
+• F5 - Обновить список игр
+• Ctrl + Shift + F - Переключить представление избранного''',
+                'guide_shortcuts_navigation_title': '🧭 Навигация и Параметры',
+                'guide_shortcuts_navigation_content': '''• F1 - Открыть руководство пользователя
+• Ctrl + Shift + P - Открыть параметры
+• Ctrl + Q - Выход из приложения''',
+                'guide_shortcuts_tips_title': '💡 Советы по Горячим Клавишам',
+                'guide_shortcuts_tips_content': '''• Горячие клавиши работают везде в приложении
+• Вы можете использовать прописные и строчные буквы
+• Escape всегда очищает текущий поиск
+• F1 - ваша клавиша быстрой помощи''',
+                'guide_shortcuts_workflow_title': '⚡ Быстрый Рабочий Процесс',
+                'guide_shortcuts_workflow_content': '''1. Ctrl + N для быстрого добавления игр
+2. Ctrl + F для поиска без мыши
+3. Escape для очистки и начала заново
+4. Ctrl + Shift + F для просмотра только избранного
+5. F5 для обновления при ручном добавлении файлов''',
+                
+                # Guide subtitle
+                'guide_subtitle': 'Все, что вам нужно знать для использования Avilon'
             },
             
             'ja': {
@@ -1857,6 +2427,7 @@ class AvalonGameManager:
                 'games_count': 'ゲーム',
                 'game_singular': 'ゲーム',
                 'no_games': 'ライブラリにゲームがありません。\n「ファイル」→「ゲームを追加」から始めてください。',
+                'no_games_search': '検索に一致するゲームが見つかりません',
                 'search_placeholder': 'ゲームを検索... (お気に入りは常に表示)',
                 
                 # Add game form
@@ -1946,7 +2517,109 @@ class AvalonGameManager:
                 'startup_label': 'Windowsと一緒に起動:',
                 'startup_enabled': 'プログラムがWindowsと一緒に起動するよう設定されました',
                 'startup_disabled': 'プログラムが自動起動から削除されました',
-                'startup_error': '自動起動の設定でエラーが発生しました'
+                'startup_error': '自動起動の設定でエラーが発生しました',
+                
+                # Configuration sections
+                'config_section_language_desc': 'インターフェース言語を選択',
+                'config_section_theme_desc': 'アプリケーションのビジュアルテーマを選択',
+                'config_section_startup_desc': 'Avilon をWindowsで自動起動',
+                'startup_auto_start_label': ' ✓ Windowsで自動起動',
+                
+                # User Guide
+                'how_to_use_menu': '使い方',
+                'user_guide_title': 'ユーザーガイド - Avilon の使い方',
+                'guide_tab_games': 'ゲーム',
+                'guide_tab_maps': 'マップ',
+                'guide_tab_features': '機能',
+                'guide_tab_tips': 'ヒント',
+                
+                # Games tab
+                'guide_games_title': '🎮 ゲーム管理',
+                'guide_games_add_title': '📝 ゲームを追加する方法:',
+                'guide_games_add_content': '''1. メニューの「ファイル」→「ゲームを追加」に進みます
+2. ゲーム名を入力します
+3. 画像を選択します(オプション):
+   • サポートされている形式: PNG、JPG、JPEG、BMP、GIF
+   • 推奨: 250x280ピクセル
+4. マップを設定します(「マップ」タブを参照)
+5. 「保存」をクリックします''',
+                'guide_games_manage_title': '⚙️ 既存ゲームを管理する:',
+                'guide_games_manage_content': '''• ⭐ をクリックしてお気に入りのマークを付ける/削除する
+• 「マップを表示」を使用してゲームのマップを開く
+• 「編集」してゲームデータを変更する
+• 「削除」してゲームをライブラリから削除する''',
+                
+                # Maps tab
+                'guide_maps_title': '🗺️ マップ設定',
+                'guide_maps_types_title': '📋 サポートされているマップタイプ:',
+                'guide_maps_image_title': '🖼️ 画像マップ:',
+                'guide_maps_image_content': '''• 形式: PNG、JPG、JPEG、BMP、GIF
+• 機能: ズーム、パン、全画面表示
+• 静的なゲームマップに最適''',
+                'guide_maps_web_title': '🌐 ウェブマップ(iframe):',
+                'guide_maps_web_content': '''• 有効なURL (http://またはhttps://)
+• インタラクティブなオンラインマップ
+• ゲームウィキ、ウェブガイドなど
+• 統合ウィンドウで開きます''',
+                
+                # Features tab
+                'guide_features_title': '✨ 主な機能',
+                'guide_features_search_title': '🔍 検索システム:',
+                'guide_features_search_content': '''• ゲーム名で検索
+• お気に入りは常に表示されたままです
+• フィルタ: 「すべて」と「お気に入り」''',
+                'guide_features_themes_title': '🎨 テーマとカスタマイズ:',
+                'guide_features_themes_content': '''• 5つの利用可能なテーマ: スレート、ダーク、ライト、ブルー、グリーン
+• 複数言語サポート
+• 設定は自動的に保存されます''',
+                'guide_features_startup_title': '🚀 自動起動:',
+                'guide_features_startup_content': '''• 設定から設定可能
+• 有効な場合、Windowsで起動します
+• 簡単な有効/無効切り替え''',
+                
+                # Tips tab
+                'guide_tips_title': '💡 ヒントとコツ',
+                'guide_tips_organization_title': '📚 組織:',
+                'guide_tips_organization_content': '''• ゲームに説明的な名前を使用する
+• よく使うゲームをお気に入りにマークする
+• 画像をカテゴリ別に整理する''',
+                'guide_tips_images_title': '🖼️ 画像のベストプラクティス:',
+                'guide_tips_images_content': '''• 高解像度の画像を使用する
+• 推奨サイズ: 250x280ピクセル
+• 非常に大きな画像を避ける(>5MB)''',
+                'guide_tips_maps_title': '🗺️ マップのヒント:',
+                'guide_tips_maps_content': '''• ウェブマップの場合、URLがアクセス可能であることを確認
+• 大きな画像マップはズームできます
+• 可能な限りインタラクティブなマップを使用する''',
+                
+                # Keyboard Shortcuts tab
+                'guide_tab_shortcuts': 'キーボードショートカット',
+                'guide_shortcuts_title': '⌨️ キーボードショートカット',
+                'guide_shortcuts_subtitle': 'これらの便利なキーボードショートカットで作業を高速化してください',
+                'guide_shortcuts_games_title': '🎮 ゲーム管理',
+                'guide_shortcuts_games_content': '''• Ctrl + N - 新しいゲームを追加
+• Ctrl + F - ゲームを検索
+• Escape - 検索をクリア
+• F5 - ゲームリストを更新
+• Ctrl + Shift + F - お気に入り表示を切り替える''',
+                'guide_shortcuts_navigation_title': '🧭 ナビゲーションと設定',
+                'guide_shortcuts_navigation_content': '''• F1 - ユーザーガイドを開く
+• Ctrl + Shift + P - 設定を開く
+• Ctrl + Q - アプリケーションを終了する''',
+                'guide_shortcuts_tips_title': '💡 ショートカットのヒント',
+                'guide_shortcuts_tips_content': '''• ショートカットはアプリケーション全体で動作します
+• 大文字と小文字の両方を使用できます
+• Escapeキーは常に現在の検索をクリアします
+• F1は素早いヘルプキーです''',
+                'guide_shortcuts_workflow_title': '⚡ クイックワークフロー',
+                'guide_shortcuts_workflow_content': '''1. Ctrl + N でゲームを素早く追加
+2. Ctrl + F でマウスなしで検索
+3. Escape でクリアして再度開始
+4. Ctrl + Shift + F でお気に入りのみ表示
+5. F5 で手動ファイル追加時に更新''',
+                
+                # Guide subtitle
+                'guide_subtitle': 'Avilon を使用するために知っておくべきすべてのこと'
             },
             
             'zh': {
@@ -1969,6 +2642,7 @@ class AvalonGameManager:
                 'games_count': '游戏',
                 'game_singular': '游戏',
                 'no_games': '您的游戏库中没有游戏。\n请前往"文件"→"添加游戏"开始。',
+                'no_games_search': '未找到与您的搜索相符的游戏',
                 'search_placeholder': '搜索游戏... (收藏夹始终可见)',
                 
                 # Add game form
@@ -2058,7 +2732,109 @@ class AvalonGameManager:
                 'startup_label': '随Windows启动:',
                 'startup_enabled': '程序已配置为随Windows启动',
                 'startup_disabled': '程序已从自动启动中删除',
-                'startup_error': '配置自动启动时出错'
+                'startup_error': '配置自动启动时出错',
+                
+                # Configuration sections
+                'config_section_language_desc': '选择界面语言',
+                'config_section_theme_desc': '选择应用的视觉主题',
+                'config_section_startup_desc': '随Windows自动启动Avilon',
+                'startup_auto_start_label': ' ✓ 随Windows自动启动',
+                
+                # User Guide
+                'how_to_use_menu': '如何使用',
+                'user_guide_title': '用户指南 - 如何使用 Avilon',
+                'guide_tab_games': '游戏',
+                'guide_tab_maps': '地图',
+                'guide_tab_features': '功能',
+                'guide_tab_tips': '提示',
+                
+                # Games tab
+                'guide_games_title': '🎮 游戏管理',
+                'guide_games_add_title': '📝 如何添加游戏:',
+                'guide_games_add_content': '''1. 转到菜单"文件"→"添加游戏"
+2. 完成游戏名称
+3. 选择一张图像(可选):
+   • 支持的格式: PNG、JPG、JPEG、BMP、GIF
+   • 建议: 250x280 像素
+4. 配置地图(请参见"地图"标签页)
+5. 单击"保存"''',
+                'guide_games_manage_title': '⚙️ 管理现有游戏:',
+                'guide_games_manage_content': '''• 单击 ⭐ 标记/取消标记为收藏
+• 使用"查看地图"打开游戏地图
+• "编辑"来修改游戏数据
+• "删除"从库中移除游戏''',
+                
+                # Maps tab
+                'guide_maps_title': '🗺️ 地图配置',
+                'guide_maps_types_title': '📋 支持的地图类型:',
+                'guide_maps_image_title': '🖼️ 图像地图:',
+                'guide_maps_image_content': '''• 格式: PNG、JPG、JPEG、BMP、GIF
+• 功能: 缩放、平移、全屏显示
+• 理想用于静态游戏地图''',
+                'guide_maps_web_title': '🌐 网络地图(iframe):',
+                'guide_maps_web_content': '''• 任何有效的 URL(http:// 或 https://)
+• 交互式在线地图
+• 游戏 Wiki、网络指南等
+• 在集成窗口中打开''',
+                
+                # Features tab
+                'guide_features_title': '✨ 主要功能',
+                'guide_features_search_title': '🔍 搜索系统:',
+                'guide_features_search_content': '''• 按游戏名称搜索
+• 收藏夹始终保持可见
+• 筛选: "全部"和"收藏夹"''',
+                'guide_features_themes_title': '🎨 主题和自定义:',
+                'guide_features_themes_content': '''• 5 个可用主题: 板岩、深色、浅色、蓝色、绿色
+• 支持多种语言
+• 设置自动保存''',
+                'guide_features_startup_title': '🚀 自动启动:',
+                'guide_features_startup_content': '''• 可从设置配置
+• 如果启用,将使用 Windows 启动
+• 轻松启用/禁用''',
+                
+                # Tips tab
+                'guide_tips_title': '💡 提示和技巧',
+                'guide_tips_organization_title': '📚 组织:',
+                'guide_tips_organization_content': '''• 为游戏使用描述性名称
+• 将常用游戏标记为收藏
+• 按类别组织图像''',
+                'guide_tips_images_title': '🖼️ 图像最佳实践:',
+                'guide_tips_images_content': '''• 使用高分辨率图像
+• 推荐尺寸: 250x280 像素
+• 避免非常大的图像 (>5MB)''',
+                'guide_tips_maps_title': '🗺️ 地图提示:',
+                'guide_tips_maps_content': '''• 对于网络地图,请验证 URL 是否可访问
+• 大型图像地图可以缩放
+• 尽可能使用交互式地图''',
+                
+                # Keyboard Shortcuts tab
+                'guide_tab_shortcuts': '键盘快捷键',
+                'guide_shortcuts_title': '⌨️ 键盘快捷键',
+                'guide_shortcuts_subtitle': '使用这些有用的键盘快捷键加快您的工作速度',
+                'guide_shortcuts_games_title': '🎮 游戏管理',
+                'guide_shortcuts_games_content': '''• Ctrl + N - 添加新游戏
+• Ctrl + F - 搜索游戏
+• Escape - 清除搜索
+• F5 - 刷新游戏列表
+• Ctrl + Shift + F - 切换收藏夹视图''',
+                'guide_shortcuts_navigation_title': '🧭 导航和设置',
+                'guide_shortcuts_navigation_content': '''• F1 - 打开用户指南
+• Ctrl + Shift + P - 打开设置
+• Ctrl + Q - 退出应用程序''',
+                'guide_shortcuts_tips_title': '💡 快捷键提示',
+                'guide_shortcuts_tips_content': '''• 快捷键在应用程序的任何地方都可以使用
+• 您可以使用大写和小写
+• Escape 键始终清除当前搜索
+• F1 是您的快速帮助键''',
+                'guide_shortcuts_workflow_title': '⚡ 快速工作流程',
+                'guide_shortcuts_workflow_content': '''1. Ctrl + N 快速添加游戏
+2. Ctrl + F 不使用鼠标进行搜索
+3. Escape 清除并重新开始
+4. Ctrl + Shift + F 仅查看收藏夹
+5. F5 在手动添加文件时刷新''',
+                
+                # Guide subtitle
+                'guide_subtitle': '您需要了解的有关使用 Avilon 的所有信息'
             }
         }
     
@@ -2563,7 +3339,7 @@ class AvalonGameManager:
         
         # Versión
         version_label = ttk.Label(main_frame,
-                                 text="Versión 1.5.9",
+                                 text="Versión 1.6.2",
                                  style='Dark.TLabel',
                                  font=('Arial', 9, 'italic'))
         version_label.pack(pady=(0, 15))
@@ -4155,7 +4931,15 @@ class AvalonGameManager:
         # Combobox para seleccionar idioma
         languages = [
             ('es', self.get_text('spanish')),
-            ('en', self.get_text('english'))
+            ('en', self.get_text('english')),
+            ('fr', self.get_text('french')),
+            ('de', self.get_text('german')),
+            ('it', self.get_text('italian')),
+            ('pt', self.get_text('portuguese')),
+            ('nl', self.get_text('dutch')),
+            ('ru', self.get_text('russian')),
+            ('ja', self.get_text('japanese')),
+            ('zh', self.get_text('chinese'))
         ]
         
         # Variable para almacenar solo el código del idioma
@@ -5708,7 +6492,7 @@ class AvalonGameManager:
             if not self.games:
                 message = self.get_text('no_games') if hasattr(self, 'get_text') else "No hay juegos agregados"
             else:
-                message = "No se encontraron juegos que coincidan con la búsqueda"
+                message = self.get_text('no_games_search')
             
             no_games_label = ttk.Label(self.scrollable_frame,
                                       text=message,

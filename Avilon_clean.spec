@@ -1,11 +1,12 @@
 # -*- mode: python ; coding: utf-8 -*-
 
-
 a = Analysis(
-    ['Avilon_clean.py'],
-    pathex=[],
+    ['C:\\Users\\gimen\\Desktop\\GKPROJECT\\Avilon\\Avilon_clean.py'],
+    pathex=['C:\\Users\\gimen\\Desktop\\GKPROJECT\\Avilon'],
     binaries=[],
-    datas=[('logo.ico', '.'), ('avilon_config.json', '.'), ('avilon_games.json', '.')],
+    datas=[
+        ('C:\\Users\\gimen\\Desktop\\GKPROJECT\\Avilon\\logo.ico', '.'),
+    ],
     hiddenimports=[],
     hookspath=[],
     hooksconfig={},
@@ -23,17 +24,17 @@ exe = EXE(
     a.datas,
     [],
     name='Avilon_clean',
-    debug=False,
+    debug=False,  # Cambia a True si quieres ver consola para depuración
     bootloader_ignore_signals=False,
     strip=False,
     upx=True,
     upx_exclude=[],
     runtime_tmpdir=None,
-    console=False,
+    console=False,  # Poner True si quieres depurar en consola
     disable_windowed_traceback=False,
     argv_emulation=False,
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['logo.ico'],
+    icon=['C:\\Users\\gimen\\Desktop\\GKPROJECT\\Avilon\\logo.ico'],
 )
