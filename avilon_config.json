@@ -1,5 +1,15 @@
 {
-    "language": "en",
-    "theme": "esports",
-    "startup": false
+    "language": "es",
+    "theme": "gaming_rgb",
+    "startup": false,
+    "keybinds": {
+        "add_game": "<Control-n>",
+        "config": "<Control-Shift-P>",
+        "help": "<F1>",
+        "search": "<Control-f>",
+        "clear_search": "<Escape>",
+        "refresh": "<F5>",
+        "favorites": "<Control-Shift-F>",
+        "exit": "<Control-q>"
+    }
 }

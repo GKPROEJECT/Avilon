@@ -4,7 +4,7 @@ from tkinter import ttk, filedialog, messagebox, simpledialog
 import json
 import os
 import shutil
-from PIL import Image, ImageTk
+from PIL import Image, ImageTk, ImageDraw
 import webbrowser
 import tkinter.font as tkFont
 import urllib.parse
@@ -13,6 +13,7 @@ import time
 import subprocess
 import sys
 import platform
+from datetime import datetime, timedelta
 
 def resource_path(relative_path):
     """Obtener la ruta correcta para recursos, funciona tanto en .py como en .exe"""
@@ -24,9 +25,16 @@ def resource_path(relative_path):
     return os.path.join(base_path, relative_path)
 import threading
 import winreg
+try:
+    import pygetwindow as gw
+except ImportError:
+    gw = None
 
 class SplashScreen:
-    def __init__(self):
+    def __init__(self, language='es', translations=None):
+        self.language = language
+        self.translations = translations if translations else {}
+        
         self.splash = tk.Tk()
         self.splash.title("Avilon")
         
@@ -43,11 +51,11 @@ class SplashScreen:
         
         # Configurar ventana sin bordes y centrada
         self.splash.overrideredirect(True)
-        self.splash.configure(bg='#0a0a0a')
+        self.splash.configure(bg='#0f0f0f')
         
-        # Dimensiones del splash (más grande para más profesional)
-        splash_width = 500
-        splash_height = 350
+        # Dimensiones del splash (mayor tamaño)
+        splash_width = 600
+        splash_height = 420
         
         # Centrar la ventana
         screen_width = self.splash.winfo_screenwidth()
@@ -63,7 +71,7 @@ class SplashScreen:
             width=splash_width, 
             height=splash_height,
             highlightthickness=0,
-            bg='#0a0a0a'
+            bg='#0f0f0f'
         )
         self.canvas.pack(fill=tk.BOTH, expand=True)
         
@@ -77,6 +85,7 @@ class SplashScreen:
         self.logo_animation_step = 0
         self.title_alpha = 0
         self.glow_intensity = 0
+        self.animation_active = True
         
         # Contenedor principal
         self.setup_main_content()
@@ -88,39 +97,38 @@ class SplashScreen:
         self.start_entrance_animation()
         
     def create_gradient_background(self):
-        """Crear fondo con gradiente profesional minimalista"""
-        # Colores del gradiente elegante (de arriba a abajo)
+        """Crear fondo con gradiente profesional elegante"""
         colors = [
-            '#0a0a0a',  # Negro profundo
-            '#151515',  # Negro suave
-            '#1a1a1a',  # Gris muy oscuro
-            '#202020',  # Gris oscuro
-            '#1a1a1a',  # Gris muy oscuro
-            '#151515',  # Negro suave
-            '#0a0a0a'   # Negro profundo
+            '#0f0f0f',
+            '#1a1a1f',
+            '#252530',
+            '#2a2a35',
+            '#252530',
+            '#1a1a1f',
+            '#0f0f0f'
         ]
         
-        height_per_section = 350 // len(colors)
+        height_per_section = 420 // len(colors)
         
         for i, color in enumerate(colors):
             y1 = i * height_per_section
             y2 = (i + 1) * height_per_section
             self.canvas.create_rectangle(
-                0, y1, 500, y2,
+                0, y1, 600, y2,
                 fill=color, outline=color
             )
     
     def create_border_glow(self):
-        """Crear borde con efecto glow minimalista"""
-        # Borde exterior con gradiente elegante y sutil
-        border_colors = ['#c9b037', '#d4d4d4', '#e8e8e8', '#f5f5f5']
+        """Crear borde minimalista elegante"""
+        self.canvas.create_rectangle(
+            0, 0, 600, 420,
+            outline='#3a3a45', width=2, fill=''
+        )
         
-        for i, color in enumerate(border_colors):
-            thickness = len(border_colors) - i
-            self.canvas.create_rectangle(
-                i, i, 500-i, 350-i,
-                outline=color, width=thickness, fill=''
-            )
+        self.canvas.create_rectangle(
+            1, 1, 599, 419,
+            outline='#2a2a35', width=1, fill=''
+        )
     
     def setup_main_content(self):
         """Configurar el contenido principal del splash"""
@@ -145,101 +153,102 @@ class SplashScreen:
     def setup_animated_logo(self):
         """Configurar logo con animación"""
         try:
-            logo_path = resource_path("logo.ico")
+            logo_path = resource_path("logo.png")
             
             if os.path.exists(logo_path):
-                # Cargar y redimensionar el logo
-                logo_image = Image.open(logo_path)
-                logo_image = logo_image.resize((80, 80), Image.Resampling.LANCZOS)
+                logo_image = Image.open(logo_path).convert('RGBA')
+                logo_image.thumbnail((100, 100), Image.Resampling.LANCZOS)
                 self.logo_photo = ImageTk.PhotoImage(logo_image)
                 
-                # Posición inicial del logo (será animada)
                 self.logo_id = self.canvas.create_image(
-                    250, 70, image=self.logo_photo, anchor='center'
+                    300, 90, image=self.logo_photo, anchor='center'
                 )
             else:
-                # Logo placeholder más profesional
                 self.logo_id = self.canvas.create_text(
-                    250, 70, text="🚀", font=('Segoe UI Emoji', 60),
-                    fill='#c9b037', anchor='center'
+                    300, 90, text="🚀", font=('Segoe UI Emoji', 70),
+                    fill='#6366f1', anchor='center'
                 )
         except Exception:
-            # Fallback logo
             self.logo_id = self.canvas.create_text(
-                250, 70, text="🚀", font=('Segoe UI Emoji', 60),
-                fill='#c9b037', anchor='center'
+                300, 90, text="🚀", font=('Segoe UI Emoji', 70),
+                fill='#6366f1', anchor='center'
             )
     
     def create_title(self):
-        """Crear título con efecto glow"""
-        # Sombra del título (sutil)
+        """Crear título con diseño moderno"""
         self.canvas.create_text(
-            251, 131, text="AVILON", 
-            font=('Segoe UI', 32, 'bold'),
-            fill='#404040', anchor='center'
+            301, 161, text="AVILON", 
+            font=('Segoe UI', 42, 'bold'),
+            fill='#1a1a1f', anchor='center'
         )
         
-        # Título principal
         self.title_id = self.canvas.create_text(
-            250, 130, text="AVILON", 
-            font=('Segoe UI', 32, 'bold'),
+            300, 160, text="AVILON", 
+            font=('Segoe UI', 42, 'bold'),
             fill='#ffffff', anchor='center'
         )
     
     def create_subtitle(self):
         """Crear subtítulo elegante"""
+        subtitle_text = self.get_splash_text('splash_subtitle')
         self.subtitle_id = self.canvas.create_text(
-            250, 160, text="Map Library Manager", 
-            font=('Segoe UI', 12),
-            fill='#a0a0a0', anchor='center'
+            300, 200, text=subtitle_text, 
+            font=('Segoe UI', 13),
+            fill='#a8aab3', anchor='center'
         )
     
     def create_modern_progress_bar(self):
         """Crear barra de progreso moderna"""
-        # Fondo de la barra
+        progress_y = 260
+        progress_x1 = 80
+        progress_x2 = 520
+        progress_h = 6
+        
         self.progress_bg = self.canvas.create_rectangle(
-            100, 220, 400, 235,
-            fill='#2a2a2a', outline='#404040', width=1
+            progress_x1, progress_y, progress_x2, progress_y + progress_h,
+            fill='#1f1f29', outline='#2a2a35', width=1
         )
         
-        # Barra de progreso activa (inicialmente invisible)
         self.progress_fill = self.canvas.create_rectangle(
-            100, 220, 100, 235,
+            progress_x1, progress_y, progress_x1, progress_y + progress_h,
             fill='', outline=''
         )
         
-        # Variables para progreso
         self.progress_value = 0
+        self.progress_x1 = progress_x1
+        self.progress_x2 = progress_x2
+        self.progress_y = progress_y
+        self.progress_h = progress_h
     
     def create_status_area(self):
         """Crear área de estado y versión"""
-        # Estado de carga
+        status_text = self.get_splash_text('splash_initializing')
         self.status_id = self.canvas.create_text(
-            250, 255, text="Iniciando...", 
-            font=('Segoe UI', 10),
-            fill='#b0b0b0', anchor='center'
+            300, 285, text=status_text, 
+            font=('Segoe UI', 11),
+            fill='#a8aab3', anchor='center'
         )
         
-        # Versión
+        version_text = self.get_splash_text('splash_version')
         self.version_id = self.canvas.create_text(
-            250, 320, text="version 1.6.2", 
+            300, 370, text=version_text, 
             font=('Segoe UI', 9),
-            fill='#808080', anchor='center'
+            fill='#6a6a75', anchor='center'
         )
     
     def create_decorative_particles(self):
-        """Crear partículas decorativas"""
+        """Crear partículas decorativas sutiles"""
         self.particles = []
         import random
         
-        for _ in range(20):
-            x = random.randint(50, 450)
-            y = random.randint(50, 300)
-            size = random.randint(1, 3)
+        for _ in range(12):
+            x = random.randint(40, 560)
+            y = random.randint(40, 380)
+            size = random.randint(1, 2)
             
             particle = self.canvas.create_oval(
                 x, y, x+size, y+size,
-                fill='#c9b037', outline='', stipple='gray25'
+                fill='#6366f1', outline=''
             )
             self.particles.append(particle)
     
@@ -250,42 +259,41 @@ class SplashScreen:
         self.animate_particles()
     
     def animate_logo_entrance(self):
-        """Animar entrada del logo"""
-        if self.logo_animation_step < 20:
-            # Efecto de "bounce in"
-            scale = 0.5 + (self.logo_animation_step / 20) * 0.5
-            if self.logo_animation_step > 15:
-                scale += 0.1 * (20 - self.logo_animation_step) / 5
+        """Animar entrada del logo elegante"""
+        if self.animation_active and self.logo_animation_step < 25:
+            scale = 0.5 + (self.logo_animation_step / 25) * 0.5
+            if self.logo_animation_step > 20:
+                scale += 0.08 * (25 - self.logo_animation_step) / 5
             
             self.logo_animation_step += 1
-            self.splash.after(50, self.animate_logo_entrance)
+            self.splash.after(40, self.animate_logo_entrance)
     
     def animate_title_fade_in(self):
-        """Animar fade in del título"""
-        if self.title_alpha < 255:
-            self.title_alpha += 15
-            # Aplicar efecto de fade (simulado con colores)
-            self.splash.after(100, self.animate_title_fade_in)
+        """Animar fade in del título elegante"""
+        if self.animation_active and self.title_alpha < 255:
+            self.title_alpha += 12
+            self.splash.after(80, self.animate_title_fade_in)
     
     def animate_particles(self):
-        """Animar partículas flotantes"""
+        """Animar partículas flotantes sutiles"""
+        if not self.animation_active:
+            return
+            
         import random
         
         for particle in self.particles:
             coords = self.canvas.coords(particle)
             if len(coords) >= 4:
-                # Movimiento aleatorio sutil
-                dx = random.uniform(-0.5, 0.5)
-                dy = random.uniform(-0.5, 0.5)
+                dx = random.uniform(-0.3, 0.3)
+                dy = random.uniform(-0.3, 0.3)
                 self.canvas.move(particle, dx, dy)
                 
-                # Cambiar opacidad aleatoriamente
-                if random.random() < 0.1:
-                    colors = ['#c9b037', '#d4d4d4', '#a0a0a0', '#e8e8e8']
+                if random.random() < 0.08:
+                    colors = ['#6366f1', '#7c7cff', '#5a5aff']
                     new_color = random.choice(colors)
                     self.canvas.itemconfig(particle, fill=new_color)
         
-        self.splash.after(100, self.animate_particles)
+        self.splash.after(120, self.animate_particles)
     
     def setup_progress_style(self):
         """Configurar el estilo de la barra de progreso"""
@@ -304,63 +312,56 @@ class SplashScreen:
         )
     
     def update_progress(self, value, status_text):
-        """Actualizar la barra de progreso y el texto de estado con animación"""
-        # Actualizar barra de progreso
+        """Actualizar la barra de progreso y el texto de estado"""
         self.progress_value = value
-        progress_width = int((value / 100) * 300)  # 300 es el ancho total de la barra
+        progress_width = int((value / 100) * (self.progress_x2 - self.progress_x1))
         
-        # Crear gradiente para la barra de progreso
         self.canvas.delete(self.progress_fill)
         if value > 0:
-            # Crear barra con gradiente elegante
-            colors = ['#404040', '#707070', '#c9b037']
+            colors = ['#5a5aff', '#6366f1', '#7c7cff']
             segment_width = progress_width // len(colors) if progress_width > 0 else 0
             
-            x_start = 100
+            x_start = self.progress_x1
             for i, color in enumerate(colors):
-                x_end = min(x_start + segment_width, 100 + progress_width)
+                x_end = min(x_start + segment_width, self.progress_x1 + progress_width)
                 if x_end > x_start:
                     self.canvas.create_rectangle(
-                        x_start, 220, x_end, 235,
+                        x_start, self.progress_y, x_end, self.progress_y + self.progress_h,
                         fill=color, outline=''
                     )
                 x_start = x_end
-                if x_start >= 100 + progress_width:
+                if x_start >= self.progress_x1 + progress_width:
                     break
             
-            # Efecto de brillo en la barra
-            if value > 5:
-                shine_x = 100 + progress_width - 20
+            if value > 10:
+                shine_width = max(4, int(progress_width * 0.15))
+                shine_x = self.progress_x1 + progress_width - shine_width
                 self.canvas.create_rectangle(
-                    shine_x, 220, shine_x + 10, 235,
-                    fill='#ffffff', outline='', stipple='gray25'
+                    shine_x, self.progress_y, shine_x + shine_width, self.progress_y + self.progress_h,
+                    fill='#ffffff', outline='', stipple='gray12'
                 )
         
-        # Actualizar texto de estado con animación
         self.canvas.itemconfig(self.status_id, text=status_text)
-        
-        # Efecto de pulsación para el estado
         self.animate_status_pulse()
-        
         self.splash.update()
     
     def animate_status_pulse(self):
-        """Animar pulsación del texto de estado"""
-        colors = ['#b0b0b0', '#ffffff', '#b0b0b0']
+        """Animar pulsación sutil del texto de estado"""
+        colors = ['#a8aab3', '#d0d0d8', '#a8aab3']
         for i, color in enumerate(colors):
-            self.splash.after(i * 100, lambda c=color: self.canvas.itemconfig(self.status_id, fill=c))
+            self.splash.after(i * 80, lambda c=color: self.canvas.itemconfig(self.status_id, fill=c))
     
     def simulate_loading(self):
         """Simular proceso de carga con efectos visuales mejorados"""
         self.loading_steps = [
-            (5, "🔧 Inicializando componentes..."),
-            (15, "⚙️ Cargando configuración..."),
-            (30, "📁 Verificando archivos..."),
-            (45, "🎨 Configurando interfaz..."),
-            (60, "🎮 Preparando biblioteca de juegos..."),
-            (75, "🔍 Indexando contenido..."),
-            (90, "✨ Aplicando últimos toques..."),
-            (100, "🚀 ¡Listo para despegar!")
+            (5, self.get_splash_text('splash_init_components')),
+            (15, self.get_splash_text('splash_loading_config')),
+            (30, self.get_splash_text('splash_verifying_files')),
+            (45, self.get_splash_text('splash_setting_interface')),
+            (60, self.get_splash_text('splash_preparing_library')),
+            (75, self.get_splash_text('splash_indexing_content')),
+            (90, self.get_splash_text('splash_final_touches')),
+            (100, self.get_splash_text('splash_ready'))
         ]
         
         self.current_step = 0
@@ -391,25 +392,20 @@ class SplashScreen:
             self.splash.after(i * 100, self.create_energy_wave)
     
     def create_energy_wave(self):
-        """Crear onda de energía"""
-        import random
-        
-        # Crear círculo expandiéndose desde el logo
+        """Crear onda de energía elegante"""
         wave = self.canvas.create_oval(
-            245, 65, 255, 75,
-            outline='#c9b037', width=2, fill=''
+            295, 85, 305, 95,
+            outline='#6366f1', width=2, fill=''
         )
         
         def expand_wave(size=0):
-            if size < 50:
-                new_size = size + 5
+            if size < 60:
+                new_size = size + 4
                 self.canvas.coords(wave, 
-                                 250 - new_size, 70 - new_size,
-                                 250 + new_size, 70 + new_size)
+                                 300 - new_size, 90 - new_size,
+                                 300 + new_size, 90 + new_size)
                 
-                # Desvanecer el color
-                alpha = max(0, 255 - size * 5)
-                self.splash.after(50, lambda: expand_wave(new_size))
+                self.splash.after(40, lambda: expand_wave(new_size))
             else:
                 self.canvas.delete(wave)
         
@@ -421,20 +417,28 @@ class SplashScreen:
         self.fade_out()
     
     def fade_out(self):
-        """Animación de fade out"""
+        """Animación de fade out elegante"""
         if self.exit_alpha > 0:
-            self.exit_alpha -= 15
+            self.exit_alpha -= 12
             
-            # Simular fade out moviendo elementos
             for particle in self.particles:
-                self.canvas.move(particle, 0, 2)
+                self.canvas.move(particle, 0, 1)
             
-            self.splash.after(50, self.fade_out)
+            self.splash.after(40, self.fade_out)
         else:
             self.close_splash()
     
+    def get_splash_text(self, key):
+        """Obtener texto traducido para el splash screen"""
+        if not self.translations:
+            return key
+        
+        lang_dict = self.translations.get(self.language, {})
+        return lang_dict.get(key, self.translations.get('es', {}).get(key, key))
+    
     def close_splash(self):
         """Cerrar el splash screen con callback"""
+        self.animation_active = False
         try:
             self.splash.destroy()
         except:
@@ -504,13 +508,27 @@ class AvalonGameManager:
         
         # Sistema de favoritos
         self.favorites_filter = "all"  # "all" o "favorites"
+        self.game_card_widgets = {}  # Almacenar referencias a widgets de tarjetas por nombre de juego
         
         # Sistema de idiomas y configuración
         self.config_file = os.path.join(self.base_dir, "avilon_config.json")
+        
+        self.default_keybinds = {
+            'add_game': '<Control-n>',
+            'config': '<Control-Shift-P>',
+            'help': '<F1>',
+            'search': '<Control-f>',
+            'clear_search': '<Escape>',
+            'refresh': '<F5>',
+            'favorites': '<Control-Shift-F>',
+            'exit': '<Control-q>'
+        }
+        
         self.config = self.load_config()
         self.current_language = self.config.get('language', 'es')
         self.current_theme = self.config.get('theme', 'slate')
         self.startup_enabled = self.config.get('startup', False)
+        self.keybinds = self.config.get('keybinds', self.default_keybinds.copy())
         self.translations = self.load_translations()
         self.themes = self.load_themes()
         
@@ -561,34 +579,43 @@ class AvalonGameManager:
     
     def setup_keyboard_shortcuts(self):
         """Configurar atajos de teclado para mayor comodidad"""
-        # Atajo para añadir juego (Ctrl+N)
-        self.root.bind('<Control-n>', lambda e: self.show_add_game_dialog())
-        self.root.bind('<Control-N>', lambda e: self.show_add_game_dialog())
+        keybinds = self.keybinds
         
-        # Atajo para configuración (Ctrl+Shift+P)
-        self.root.bind('<Control-Shift-P>', lambda e: self.show_config_dialog())
-        self.root.bind('<Control-Shift-p>', lambda e: self.show_config_dialog())
-        
-        # Atajo para guía de usuario (F1)
-        self.root.bind('<F1>', lambda e: self.show_user_guide_dialog())
-        
-        # Atajo para buscar (Ctrl+F)
-        self.root.bind('<Control-f>', lambda e: self.focus_search_bar())
-        self.root.bind('<Control-F>', lambda e: self.focus_search_bar())
-        
-        # Atajo para limpiar búsqueda (Escape)
-        self.root.bind('<Escape>', lambda e: self.clear_search_and_focus())
-        
-        # Atajo para actualizar lista (F5)
-        self.root.bind('<F5>', lambda e: self.refresh_games_display())
-        
-        # Atajo para mostrar solo favoritos (Ctrl+Shift+F)
-        self.root.bind('<Control-Shift-F>', lambda e: self.toggle_favorites_filter())
-        self.root.bind('<Control-Shift-f>', lambda e: self.toggle_favorites_filter())
-        
-        # Atajo para salir de la aplicación (Ctrl+Q)
-        self.root.bind('<Control-q>', lambda e: self.on_closing())
-        self.root.bind('<Control-Q>', lambda e: self.on_closing())
+        try:
+            add_game_key = keybinds.get('add_game', '<Control-n>')
+            if add_game_key:
+                self.root.bind(add_game_key, lambda e: self.show_add_game_dialog())
+            
+            config_key = keybinds.get('config', '<Control-Shift-P>')
+            if config_key:
+                self.root.bind(config_key, lambda e: self.show_config_dialog())
+            
+            help_key = keybinds.get('help', '<F1>')
+            if help_key:
+                self.root.bind(help_key, lambda e: self.show_user_guide_dialog())
+            
+            search_key = keybinds.get('search', '<Control-f>')
+            if search_key:
+                self.root.bind(search_key, lambda e: self.focus_search_bar())
+            
+            clear_search_key = keybinds.get('clear_search', '<Escape>')
+            if clear_search_key:
+                self.root.bind(clear_search_key, lambda e: self.clear_search_and_focus())
+            
+            refresh_key = keybinds.get('refresh', '<F5>')
+            if refresh_key:
+                self.root.bind(refresh_key, lambda e: self.refresh_games_display())
+            
+            favorites_key = keybinds.get('favorites', '<Control-Shift-F>')
+            if favorites_key:
+                self.root.bind(favorites_key, lambda e: self.toggle_favorites_filter())
+            
+            exit_key = keybinds.get('exit', '<Control-q>')
+            if exit_key:
+                self.root.bind(exit_key, lambda e: self.on_closing())
+        except Exception as e:
+            print(f"Error setting up keyboard shortcuts: {e}")
+    
     
     def focus_search_bar(self):
         """Enfocar la barra de búsqueda"""
@@ -704,6 +731,17 @@ class AvalonGameManager:
                 # Ventana principal
                 'window_title': 'Avilon',
                 'add_game': 'Añadir Juego',
+                'export_games': 'Exportar Juegos',
+                'import_games': 'Importar Juegos',
+                'export_game_dialog_title': 'Seleccionar Juegos para Exportar',
+                'import_game_dialog_title': 'Importar Juegos',
+
+                'export_button': 'Exportar Seleccionados',
+                'import_button': 'Importar Juegos',
+                'exported_successfully': 'Juegos exportados correctamente',
+                'imported_successfully': 'Juegos importados correctamente',
+                'export_failed': 'Error al exportar juegos',
+                'import_failed': 'Error al importar juegos',
                 'add_game_button': '+ Añadir Juego',
                 'library': 'BIBLIOTECA',
                 'games_count': 'juegos',
@@ -807,6 +845,7 @@ class AvalonGameManager:
                 
                 # Guía de uso
                 'how_to_use_menu': 'Cómo se usa',
+                'report_bug_menu': 'Reportar un error',
                 'user_guide_title': 'Guía de Usuario - Cómo usar Avilon',
                 'guide_tab_games': 'Juegos',
                 'guide_tab_maps': 'Mapas', 
@@ -817,15 +856,15 @@ class AvalonGameManager:
                 'guide_games_title': '🎮 Gestión de Juegos',
                 'guide_games_add_title': '📝 Cómo agregar un juego:',
                 'guide_games_add_content': '''1. Ve al menú "Archivo" → "Añadir Juego"
-2. Completa el nombre del juego
-3. Selecciona una imagen (opcional):
+2. Escribe el nombre del juego
+3. Escribe una descripción del juego (opcional)
+4. Selecciona una imagen (obligatoria):
    • Formatos soportados: PNG, JPG, JPEG, BMP, GIF
    • Recomendado: 250x280 píxeles
-4. Configura el mapa (ver pestaña "Mapas")
-5. Haz clic en "Guardar"''',
+5. Configura el mapa (ver pestaña "Mapas")
+6. Haz clic en "Guardar"''',
                 'guide_games_manage_title': '⚙️ Gestionar juegos existentes:',
                 'guide_games_manage_content': '''• Hacer clic en ⭐ para marcar/desmarcar como favorito
-• Usar "Ver mapa" para abrir el mapa del juego
 • "Editar" para modificar los datos del juego
 • "Eliminar" para borrar el juego de la biblioteca''',
                 
@@ -892,14 +931,58 @@ class AvalonGameManager:
 • La tecla Escape siempre limpia la búsqueda actual
 • F1 es tu tecla de ayuda rápida''',
                 'guide_shortcuts_workflow_title': '⚡ Flujo de Trabajo Rápido',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N para añadir juegos rápidamente
-2. Ctrl + F para buscar sin usar el ratón
-3. Escape para limpiar y empezar de nuevo
-4. Ctrl + Shift + F para ver solo tus favoritos
-5. F5 para refrescar cuando agregues archivos manualmente''',
+                'guide_shortcuts_workflow_content': 'Los atajos de teclado pueden personalizarse en la ventana de Configuración. Abre la ventana de Configuración desde el menú o presiona Ctrl + Shift + P para cambiar los atajos según tus preferencias.',
+                'guide_shortcuts_open_settings': 'Abrir Configuración',
                 
                 # Subtítulo de la guía
-                'guide_subtitle': 'Todo lo que necesitas saber para usar Avilon'
+                'guide_subtitle': 'Todo lo que necesitas saber para usar Avilon',
+                
+                # Objetivos en la presentación del juego
+                'objectives': 'Objetivos',
+                'no_objectives': 'Sin objetivos',
+                'new_objective': 'Nuevo objetivo',
+                'write_objective': 'Escribe el objetivo:',
+                'add_objective': 'Añadir objetivo',
+                
+                # Descripción y metadata del juego
+                'game_description': 'Descripción (opcional):',
+                'description': 'Descripción',
+                'added_date': 'Fecha de adición',
+                'play_time': 'Tiempo jugado',
+                'days': 'días',
+                'day': 'día',
+                'hours': 'horas',
+                'hour': 'hora',
+                'minutes': 'minutos',
+                'minute': 'minuto',
+                'never_opened': 'Aún no abierto',
+                
+                # Splash Screen
+                'splash_subtitle': 'Gestor de Biblioteca de Mapas',
+                'splash_version': 'versión 2.8.9',
+                'splash_initializing': 'Iniciando...',
+                'splash_init_components': '🔧 Inicializando componentes...',
+                'splash_loading_config': '⚙️ Cargando configuración...',
+                'splash_verifying_files': '📁 Verificando archivos...',
+                'splash_setting_interface': '🎨 Configurando interfaz...',
+                'splash_preparing_library': '🎮 Preparando biblioteca de juegos...',
+                'splash_indexing_content': '🔍 Indexando contenido...',
+                'splash_final_touches': '✨ Aplicando últimos toques...',
+                'splash_ready': '🚀 ¡Listo para despegar!',
+                
+                # Atajos de teclado
+                'keybinds_label': 'Atajos de teclado',
+                'keybinds_desc': 'Personaliza los atajos de teclado',
+                'command': 'Comando',
+                'add_game_label': 'Añadir juego',
+                'search_label': 'Buscar',
+                'clear_search_label': 'Limpiar búsqueda',
+                'refresh_label': 'Actualizar',
+                'favorites_label': 'Favoritos',
+                'reset': 'Restablecer predeterminados',
+                'capture_keybind': 'Presiona la combinación de teclas...',
+                'capture_cancel': '(Presiona ESC para cancelar)',
+                'capture_button': '🎹 Capturar'
             },
             
             'en': {
@@ -917,6 +1000,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': 'Add Game',
+                'export_games': 'Export Games',
+                'import_games': 'Import Games',
+                'export_game_dialog_title': 'Select Games to Export',
+                'import_game_dialog_title': 'Import Games',
+
+                'export_button': 'Export Selected',
+                'import_button': 'Import Games',
+                'exported_successfully': 'Games exported successfully',
+                'imported_successfully': 'Games imported successfully',
+                'export_failed': 'Error exporting games',
+                'import_failed': 'Error importing games',
                 'add_game_button': '+ Add Game',
                 'library': 'LIBRARY',
                 'games_count': 'games',
@@ -990,6 +1084,7 @@ class AvalonGameManager:
                 
                 # Game buttons
                 'view_map': 'View map',
+                'view_guide': 'View guide',
                 'edit': 'Edit',
                 'delete': 'Delete',
                 'delete_game': 'Delete game',
@@ -1020,6 +1115,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': 'How to Use',
+                'report_bug_menu': 'Report an error',
                 'user_guide_title': 'User Guide - How to use Avilon',
                 'guide_tab_games': 'Games',
                 'guide_tab_maps': 'Maps', 
@@ -1030,15 +1126,15 @@ class AvalonGameManager:
                 'guide_games_title': '🎮 Game Management',
                 'guide_games_add_title': '📝 How to add a game:',
                 'guide_games_add_content': '''1. Go to "File" → "Add Game" menu
-2. Fill in the game name
-3. Select an image (optional):
+2. Enter the game name
+3. Enter a game description (optional)
+4. Select an image (required):
    • Supported formats: PNG, JPG, JPEG, BMP, GIF
    • Recommended: 250x280 pixels
-4. Configure the map (see "Maps" tab)
-5. Click "Save"''',
+5. Configure the map (see "Maps" tab)
+6. Click "Save"''',
                 'guide_games_manage_title': '⚙️ Managing existing games:',
                 'guide_games_manage_content': '''• Click on ⭐ to mark/unmark as favorite
-• Use "View map" to open the game map
 • "Edit" to modify game data
 • "Delete" to remove the game from library''',
                 
@@ -1105,14 +1201,58 @@ class AvalonGameManager:
 • Escape key always clears current search
 • F1 is your quick help key''',
                 'guide_shortcuts_workflow_title': '⚡ Quick Workflow',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N to add games quickly
-2. Ctrl + F to search without using mouse
-3. Escape to clear and start over
-4. Ctrl + Shift + F to see only favorites
-5. F5 to refresh when adding files manually''',
+                'guide_shortcuts_workflow_content': 'Keyboard shortcuts can be customized in the Settings window. Open the Settings window from the menu or press Ctrl + Shift + P to modify shortcuts according to your preferences.',
+                'guide_shortcuts_open_settings': 'Open Settings',
                 
                 # Guide subtitle
-                'guide_subtitle': 'Everything you need to know about using Avilon'
+                'guide_subtitle': 'Everything you need to know about using Avilon',
+                
+                # Objectives in game presentation
+                'objectives': 'Objectives',
+                'no_objectives': 'No objectives',
+                'new_objective': 'New objective',
+                'write_objective': 'Write the objective:',
+                'add_objective': 'Add objective',
+                
+                # Game description and metadata
+                'game_description': 'Description (optional):',
+                'description': 'Description',
+                'added_date': 'Added date',
+                'play_time': 'Play time',
+                'days': 'days',
+                'day': 'day',
+                'hours': 'hours',
+                'hour': 'hour',
+                'minutes': 'minutes',
+                'minute': 'minute',
+                'never_opened': 'Never opened',
+                
+                # Splash Screen
+                'splash_subtitle': 'Map Library Manager',
+                'splash_version': 'version 2.8.9',
+                'splash_initializing': 'Starting up...',
+                'splash_init_components': '🔧 Initializing components...',
+                'splash_loading_config': '⚙️ Loading configuration...',
+                'splash_verifying_files': '📁 Verifying files...',
+                'splash_setting_interface': '🎨 Setting up interface...',
+                'splash_preparing_library': '🎮 Preparing game library...',
+                'splash_indexing_content': '🔍 Indexing content...',
+                'splash_final_touches': '✨ Applying final touches...',
+                'splash_ready': '🚀 Ready to launch!',
+                
+                # Keyboard shortcuts
+                'keybinds_label': 'Keyboard Shortcuts',
+                'keybinds_desc': 'Customize your keyboard shortcuts',
+                'command': 'Command',
+                'add_game_label': 'Add game',
+                'search_label': 'Search',
+                'clear_search_label': 'Clear search',
+                'refresh_label': 'Refresh',
+                'favorites_label': 'Favorites',
+                'reset': 'Reset to defaults',
+                'capture_keybind': 'Press the key combination...',
+                'capture_cancel': '(Press ESC to cancel)',
+                'capture_button': '🎹 Capture'
             },
             
             'fr': {
@@ -1130,6 +1270,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': 'Ajouter un jeu',
+                'export_games': 'Exporter des jeux',
+                'import_games': 'Importer des jeux',
+                'export_game_dialog_title': 'Sélectionner les jeux à exporter',
+                'import_game_dialog_title': 'Importer des jeux',
+
+                'export_button': 'Exporter la sélection',
+                'import_button': 'Importer des jeux',
+                'exported_successfully': 'Jeux exportés avec succès',
+                'imported_successfully': 'Jeux importés avec succès',
+                'export_failed': 'Erreur lors de l\'export des jeux',
+                'import_failed': 'Erreur lors de l\'import des jeux',
                 'add_game_button': '+ Ajouter un jeu',
                 'library': 'BIBLIOTHÈQUE',
                 'games_count': 'jeux',
@@ -1235,6 +1386,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': 'Comment utiliser',
+                'report_bug_menu': 'Signaler une erreur',
                 'user_guide_title': 'Guide Utilisateur - Comment utiliser Avilon',
                 'guide_tab_games': 'Jeux',
                 'guide_tab_maps': 'Cartes',
@@ -1245,15 +1397,15 @@ class AvalonGameManager:
                 'guide_games_title': '🎮 Gestion des Jeux',
                 'guide_games_add_title': '📝 Comment ajouter un jeu:',
                 'guide_games_add_content': '''1. Allez au menu "Fichier" → "Ajouter un jeu"
-2. Complétez le nom du jeu
-3. Sélectionnez une image (facultatif):
+2. Écrivez le nom du jeu
+3. Écrivez une description du jeu (facultatif)
+4. Sélectionnez une image (obligatoire):
    • Formats supportés: PNG, JPG, JPEG, BMP, GIF
    • Recommandé: 250x280 pixels
-4. Configurez la carte (voir onglet "Cartes")
-5. Cliquez sur "Enregistrer"''',
+5. Configurez la carte (voir onglet "Cartes")
+6. Cliquez sur "Enregistrer"''',
                 'guide_games_manage_title': '⚙️ Gérer les jeux existants:',
                 'guide_games_manage_content': '''• Cliquez sur ⭐ pour marquer/démarquer comme favori
-• Utilisez "Voir la carte" pour ouvrir la carte du jeu
 • "Modifier" pour modifier les données du jeu
 • "Supprimer" pour supprimer le jeu de la bibliothèque''',
                 
@@ -1321,14 +1473,58 @@ class AvalonGameManager:
 • La touche Échap efface toujours la recherche actuelle
 • F1 est votre touche d'aide rapide''',
                 'guide_shortcuts_workflow_title': '⚡ Flux de Travail Rapide',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N pour ajouter des jeux rapidement
-2. Ctrl + F pour rechercher sans utiliser la souris
-3. Échap pour effacer et recommencer
-4. Ctrl + Shift + F pour voir seulement les favoris
-5. F5 pour actualiser lors d'ajouts manuels de fichiers''',
+                'guide_shortcuts_workflow_content': 'Les raccourcis clavier peuvent être personnalisés dans la fenêtre Paramètres. Ouvrez la fenêtre Paramètres depuis le menu ou appuyez sur Ctrl + Shift + P pour modifier les raccourcis selon vos préférences.',
+                'guide_shortcuts_open_settings': 'Ouvrir Paramètres',
                 
                 # Guide subtitle
-                'guide_subtitle': 'Tout ce que vous devez savoir pour utiliser Avilon'
+                'guide_subtitle': 'Tout ce que vous devez savoir pour utiliser Avilon',
+                
+                # Objectifs dans la présentation du jeu
+                'objectives': 'Objectifs',
+                'no_objectives': 'Aucun objectif',
+                'new_objective': 'Nouvel objectif',
+                'write_objective': 'Écrivez l\'objectif:',
+                'add_objective': 'Ajouter un objectif',
+                
+                # Description et métadonnées du jeu
+                'game_description': 'Description (optionnel):',
+                'description': 'Description',
+                'added_date': 'Date d\'ajout',
+                'play_time': 'Temps de jeu',
+                'days': 'jours',
+                'day': 'jour',
+                'hours': 'heures',
+                'hour': 'heure',
+                'minutes': 'minutes',
+                'minute': 'minute',
+                'never_opened': 'Jamais ouvert',
+                
+                # Splash Screen
+                'splash_subtitle': 'Gestionnaire de Bibliothèque de Cartes',
+                'splash_version': 'version 2.8.9',
+                'splash_initializing': 'Démarrage...',
+                'splash_init_components': '🔧 Initialisation des composants...',
+                'splash_loading_config': '⚙️ Chargement de la configuration...',
+                'splash_verifying_files': '📁 Vérification des fichiers...',
+                'splash_setting_interface': '🎨 Configuration de l\'interface...',
+                'splash_preparing_library': '🎮 Préparation de la bibliothèque de jeux...',
+                'splash_indexing_content': '🔍 Indexation du contenu...',
+                'splash_final_touches': '✨ Application des dernières touches...',
+                'splash_ready': '🚀 Prêt à lancer!',
+                
+                # Raccourcis clavier
+                'keybinds_label': 'Raccourcis clavier',
+                'keybinds_desc': 'Personnalisez vos raccourcis clavier',
+                'command': 'Commande',
+                'add_game_label': 'Ajouter un jeu',
+                'search_label': 'Rechercher',
+                'clear_search_label': 'Effacer la recherche',
+                'refresh_label': 'Actualiser',
+                'favorites_label': 'Favoris',
+                'reset': 'Réinitialiser par défaut',
+                'capture_keybind': 'Appuyez sur la combinaison de touches...',
+                'capture_cancel': '(Appuyez sur ESC pour annuler)',
+                'capture_button': '🎹 Capturer'
             },
             
             'de': {
@@ -1346,6 +1542,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': 'Spiel hinzufügen',
+                'export_games': 'Spiele exportieren',
+                'import_games': 'Spiele importieren',
+                'export_game_dialog_title': 'Spiele zum Exportieren auswählen',
+                'import_game_dialog_title': 'Spiele importieren',
+
+                'export_button': 'Auswahl exportieren',
+                'import_button': 'Spiele importieren',
+                'exported_successfully': 'Spiele erfolgreich exportiert',
+                'imported_successfully': 'Spiele erfolgreich importiert',
+                'export_failed': 'Fehler beim Exportieren von Spielen',
+                'import_failed': 'Fehler beim Importieren von Spielen',
                 'add_game_button': '+ Spiel hinzufügen',
                 'library': 'BIBLIOTHEK',
                 'games_count': 'Spiele',
@@ -1451,6 +1658,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': 'Gebrauchsanleitung',
+                'report_bug_menu': 'Fehler melden',
                 'user_guide_title': 'Benutzerhandbuch - Wie man Avilon verwendet',
                 'guide_tab_games': 'Spiele',
                 'guide_tab_maps': 'Karten',
@@ -1461,15 +1669,15 @@ class AvalonGameManager:
                 'guide_games_title': '🎮 Spielverwaltung',
                 'guide_games_add_title': '📝 Wie man ein Spiel hinzufügt:',
                 'guide_games_add_content': '''1. Gehen Sie zum Menü "Datei" → "Spiel hinzufügen"
-2. Füllen Sie den Spielnamen aus
-3. Wählen Sie ein Bild (optional):
+2. Geben Sie den Spielnamen ein
+3. Geben Sie eine Spielbeschreibung ein (optional)
+4. Wählen Sie ein Bild (erforderlich):
    • Unterstützte Formate: PNG, JPG, JPEG, BMP, GIF
    • Empfohlen: 250x280 Pixel
-4. Konfigurieren Sie die Karte (siehe Reiter "Karten")
-5. Klicken Sie auf "Speichern"''',
+5. Konfigurieren Sie die Karte (siehe Reiter "Karten")
+6. Klicken Sie auf "Speichern"''',
                 'guide_games_manage_title': '⚙️ Vorhandene Spiele verwalten:',
                 'guide_games_manage_content': '''• Klicken Sie auf ⭐, um als Favorit zu markieren/aufzuheben
-• Verwenden Sie "Karte anzeigen", um die Spielkarte zu öffnen
 • "Bearbeiten", um Spieldaten zu ändern
 • "Löschen", um das Spiel aus der Bibliothek zu entfernen''',
                 
@@ -1537,14 +1745,58 @@ class AvalonGameManager:
 • Die Escape-Taste löscht immer die aktuelle Suche
 • F1 ist Ihre schnelle Hilfe-Taste''',
                 'guide_shortcuts_workflow_title': '⚡ Schneller Arbeitsablauf',
-                'guide_shortcuts_workflow_content': '''1. Strg + N zum schnellen Hinzufügen von Spielen
-2. Strg + F zum Suchen ohne Maus
-3. Escape zum Löschen und Neubeginn
-4. Strg + Shift + F um nur Favoriten zu sehen
-5. F5 zum Aktualisieren bei manuellen Dateiänderungen''',
+                'guide_shortcuts_workflow_content': 'Tastenkombinationen können im Einstellungsfenster angepasst werden. Öffnen Sie das Einstellungsfenster über das Menü oder drücken Sie Strg + Umschalt + P, um die Tastenkombinationen nach Ihren Vorlieben zu ändern.',
+                'guide_shortcuts_open_settings': 'Einstellungen öffnen',
                 
                 # Guide subtitle
-                'guide_subtitle': 'Alles, was Sie über die Verwendung von Avilon wissen müssen'
+                'guide_subtitle': 'Alles, was Sie über die Verwendung von Avilon wissen müssen',
+                
+                # Ziele in der Spielpräsentation
+                'objectives': 'Ziele',
+                'no_objectives': 'Keine Ziele',
+                'new_objective': 'Neues Ziel',
+                'write_objective': 'Schreiben Sie das Ziel:',
+                'add_objective': 'Ziel hinzufügen',
+                
+                # Spielbeschreibung und Metadaten
+                'game_description': 'Beschreibung (optional):',
+                'description': 'Beschreibung',
+                'added_date': 'Hinzugefügt am',
+                'play_time': 'Spielzeit',
+                'days': 'Tage',
+                'day': 'Tag',
+                'hours': 'Stunden',
+                'hour': 'Stunde',
+                'minutes': 'Minuten',
+                'minute': 'Minute',
+                'never_opened': 'Noch nie geöffnet',
+                
+                # Splash Screen
+                'splash_subtitle': 'Kartenbibliotheks-Manager',
+                'splash_version': 'Version 2.8.9',
+                'splash_initializing': 'Starten...',
+                'splash_init_components': '🔧 Komponenten werden initialisiert...',
+                'splash_loading_config': '⚙️ Konfiguration wird geladen...',
+                'splash_verifying_files': '📁 Dateien werden überprüft...',
+                'splash_setting_interface': '🎨 Schnittstelle wird konfiguriert...',
+                'splash_preparing_library': '🎮 Spielbibliothek wird vorbereitet...',
+                'splash_indexing_content': '🔍 Inhalte werden indiziert...',
+                'splash_final_touches': '✨ Letzte Anpassungen werden vorgenommen...',
+                'splash_ready': '🚀 Bereit zum Starten!',
+                
+                # Tastenkombinationen
+                'keybinds_label': 'Tastenkombinationen',
+                'keybinds_desc': 'Passen Sie Ihre Tastenkombinationen an',
+                'command': 'Befehl',
+                'add_game_label': 'Spiel hinzufügen',
+                'search_label': 'Suchen',
+                'clear_search_label': 'Suche löschen',
+                'refresh_label': 'Aktualisieren',
+                'favorites_label': 'Favoriten',
+                'reset': 'Auf Standard zurücksetzen',
+                'capture_keybind': 'Drücken Sie die Tastenkombination...',
+                'capture_cancel': '(Drücken Sie ESC zum Abbrechen)',
+                'capture_button': '🎹 Erfassen'
             },
             
             'it': {
@@ -1562,6 +1814,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': 'Aggiungi gioco',
+                'export_games': 'Esporta giochi',
+                'import_games': 'Importa giochi',
+                'export_game_dialog_title': 'Seleziona giochi da esportare',
+                'import_game_dialog_title': 'Importa giochi',
+
+                'export_button': 'Esporta selezionati',
+                'import_button': 'Importa giochi',
+                'exported_successfully': 'Giochi esportati con successo',
+                'imported_successfully': 'Giochi importati con successo',
+                'export_failed': 'Errore durante l\'esportazione dei giochi',
+                'import_failed': 'Errore durante l\'importazione dei giochi',
                 'add_game_button': '+ Aggiungi gioco',
                 'library': 'LIBRERIA',
                 'games_count': 'giochi',
@@ -1667,6 +1930,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': 'Come usare',
+                'report_bug_menu': 'Segnala un errore',
                 'user_guide_title': 'Guida Utente - Come usare Avilon',
                 'guide_tab_games': 'Giochi',
                 'guide_tab_maps': 'Mappe',
@@ -1677,15 +1941,15 @@ class AvalonGameManager:
                 'guide_games_title': '🎮 Gestione Giochi',
                 'guide_games_add_title': '📝 Come aggiungere un gioco:',
                 'guide_games_add_content': '''1. Vai al menu "File" → "Aggiungi gioco"
-2. Completa il nome del gioco
-3. Seleziona un\'immagine (facoltativo):
+2. Scrivi il nome del gioco
+3. Scrivi una descrizione del gioco (facoltativo)
+4. Seleziona un\'immagine (obbligatoria):
    • Formati supportati: PNG, JPG, JPEG, BMP, GIF
    • Consigliato: 250x280 pixel
-4. Configura la mappa (vedi tab "Mappe")
-5. Fai clic su "Salva"''',
+5. Configura la mappa (vedi tab "Mappe")
+6. Fai clic su "Salva"''',
                 'guide_games_manage_title': '⚙️ Gestisci giochi esistenti:',
                 'guide_games_manage_content': '''• Fai clic su ⭐ per contrassegnare/deselezionare come preferito
-• Usa "Visualizza mappa" per aprire la mappa del gioco
 • "Modifica" per modificare i dati del gioco
 • "Elimina" per rimuovere il gioco dalla libreria''',
                 
@@ -1752,14 +2016,58 @@ class AvalonGameManager:
 • Il tasto Escape cancella sempre la ricerca corrente
 • F1 è il tuo tasto di aiuto rapido''',
                 'guide_shortcuts_workflow_title': '⚡ Flusso di Lavoro Veloce',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N per aggiungere giochi rapidamente
-2. Ctrl + F per cercare senza usare il mouse
-3. Escape per cancellare e ricominciare
-4. Ctrl + Shift + F per visualizzare solo i preferiti
-5. F5 per aggiornare quando aggiungi file manualmente''',
+                'guide_shortcuts_workflow_content': 'I tasti di scelta rapida possono essere personalizzati nella finestra Impostazioni. Apri la finestra Impostazioni dal menu o premi Ctrl + Maiusc + P per modificare i tasti di scelta rapida secondo le tue preferenze.',
+                'guide_shortcuts_open_settings': 'Apri Impostazioni',
                 
                 # Guide subtitle
-                'guide_subtitle': 'Tutto quello che devi sapere per usare Avilon'
+                'guide_subtitle': 'Tutto quello che devi sapere per usare Avilon',
+                
+                # Obiettivi nella presentazione del gioco
+                'objectives': 'Obiettivi',
+                'no_objectives': 'Nessun obiettivo',
+                'new_objective': 'Nuovo obiettivo',
+                'write_objective': 'Scrivi l\'obiettivo:',
+                'add_objective': 'Aggiungi obiettivo',
+                
+                # Descrizione del gioco e metadati
+                'game_description': 'Descrizione (opzionale):',
+                'description': 'Descrizione',
+                'added_date': 'Data di aggiunta',
+                'play_time': 'Tempo di gioco',
+                'days': 'giorni',
+                'day': 'giorno',
+                'hours': 'ore',
+                'hour': 'ora',
+                'minutes': 'minuti',
+                'minute': 'minuto',
+                'never_opened': 'Mai aperto',
+                
+                # Splash Screen
+                'splash_subtitle': 'Gestione Biblioteca Mappe',
+                'splash_version': 'versione 2.8.9',
+                'splash_initializing': 'Avvio...',
+                'splash_init_components': '🔧 Inizializzazione componenti...',
+                'splash_loading_config': '⚙️ Caricamento configurazione...',
+                'splash_verifying_files': '📁 Verifica dei file...',
+                'splash_setting_interface': '🎨 Configurazione interfaccia...',
+                'splash_preparing_library': '🎮 Preparazione libreria giochi...',
+                'splash_indexing_content': '🔍 Indicizzazione contenuti...',
+                'splash_final_touches': '✨ Applicazione ultimi ritocchi...',
+                'splash_ready': '🚀 Pronto per il lancio!',
+                
+                # Scorciatoie da tastiera
+                'keybinds_label': 'Scorciatoie da tastiera',
+                'keybinds_desc': 'Personalizza le tue scorciatoie da tastiera',
+                'command': 'Comando',
+                'add_game_label': 'Aggiungi gioco',
+                'search_label': 'Ricerca',
+                'clear_search_label': 'Cancella ricerca',
+                'refresh_label': 'Aggiorna',
+                'favorites_label': 'Preferiti',
+                'reset': 'Ripristina impostazioni predefinite',
+                'capture_keybind': 'Premi la combinazione di tasti...',
+                'capture_cancel': '(Premi ESC per annullare)',
+                'capture_button': '🎹 Cattura'
             },
             
             'pt': {
@@ -1777,6 +2085,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': 'Adicionar jogo',
+                'export_games': 'Exportar jogos',
+                'import_games': 'Importar jogos',
+                'export_game_dialog_title': 'Selecione jogos para exportar',
+                'import_game_dialog_title': 'Importar jogos',
+
+                'export_button': 'Exportar selecionados',
+                'import_button': 'Importar jogos',
+                'exported_successfully': 'Jogos exportados com sucesso',
+                'imported_successfully': 'Jogos importados com sucesso',
+                'export_failed': 'Erro ao exportar jogos',
+                'import_failed': 'Erro ao importar jogos',
                 'add_game_button': '+ Adicionar jogo',
                 'library': 'BIBLIOTECA',
                 'games_count': 'jogos',
@@ -1882,6 +2201,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': 'Como usar',
+                'report_bug_menu': 'Reportar um erro',
                 'user_guide_title': 'Guia do Usuário - Como usar Avilon',
                 'guide_tab_games': 'Jogos',
                 'guide_tab_maps': 'Mapas',
@@ -1892,15 +2212,15 @@ class AvalonGameManager:
                 'guide_games_title': '🎮 Gerenciamento de Jogos',
                 'guide_games_add_title': '📝 Como adicionar um jogo:',
                 'guide_games_add_content': '''1. Vá para o menu "Arquivo" → "Adicionar Jogo"
-2. Preencha o nome do jogo
-3. Selecione uma imagem (opcional):
+2. Escreva o nome do jogo
+3. Escreva uma descrição do jogo (opcional)
+4. Selecione uma imagem (obrigatória):
    • Formatos suportados: PNG, JPG, JPEG, BMP, GIF
    • Recomendado: 250x280 pixels
-4. Configure o mapa (veja aba "Mapas")
-5. Clique em "Salvar"''',
+5. Configure o mapa (veja aba "Mapas")
+6. Clique em "Salvar"''',
                 'guide_games_manage_title': '⚙️ Gerenciar jogos existentes:',
                 'guide_games_manage_content': '''• Clique em ⭐ para marcar/desmarcar como favorito
-• Use "Ver mapa" para abrir o mapa do jogo
 • "Editar" para modificar dados do jogo
 • "Excluir" para remover o jogo da biblioteca''',
                 
@@ -1967,14 +2287,58 @@ class AvalonGameManager:
 • A tecla Escape sempre limpa a pesquisa atual
 • F1 é sua tecla de ajuda rápida''',
                 'guide_shortcuts_workflow_title': '⚡ Fluxo de Trabalho Rápido',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N para adicionar jogos rapidamente
-2. Ctrl + F para pesquisar sem usar o mouse
-3. Escape para limpar e começar novamente
-4. Ctrl + Shift + F para ver apenas favoritos
-5. F5 para atualizar ao adicionar arquivos manualmente''',
+                'guide_shortcuts_workflow_content': 'Os atalhos de teclado podem ser personalizados na janela Configurações. Abra a janela Configurações no menu ou pressione Ctrl + Shift + P para modificar os atalhos de acordo com suas preferências.',
+                'guide_shortcuts_open_settings': 'Abrir Configurações',
                 
                 # Guide subtitle
-                'guide_subtitle': 'Tudo que você precisa saber para usar Avilon'
+                'guide_subtitle': 'Tudo que você precisa saber para usar Avilon',
+                
+                # Objetivos na apresentação do jogo
+                'objectives': 'Objetivos',
+                'no_objectives': 'Nenhum objetivo',
+                'new_objective': 'Novo objetivo',
+                'write_objective': 'Escreva o objetivo:',
+                'add_objective': 'Adicionar objetivo',
+                
+                # Descrição do jogo e metadados
+                'game_description': 'Descrição (opcional):',
+                'description': 'Descrição',
+                'added_date': 'Data de adição',
+                'play_time': 'Tempo de jogo',
+                'days': 'dias',
+                'day': 'dia',
+                'hours': 'horas',
+                'hour': 'hora',
+                'minutes': 'minutos',
+                'minute': 'minuto',
+                'never_opened': 'Nunca aberto',
+                
+                # Splash Screen
+                'splash_subtitle': 'Gerenciador de Biblioteca de Mapas',
+                'splash_version': 'versão 2.8.9',
+                'splash_initializing': 'Iniciando...',
+                'splash_init_components': '🔧 Inicializando componentes...',
+                'splash_loading_config': '⚙️ Carregando configuração...',
+                'splash_verifying_files': '📁 Verificando arquivos...',
+                'splash_setting_interface': '🎨 Configurando interface...',
+                'splash_preparing_library': '🎮 Preparando biblioteca de jogos...',
+                'splash_indexing_content': '🔍 Indexando conteúdo...',
+                'splash_final_touches': '✨ Aplicando toques finais...',
+                'splash_ready': '🚀 Pronto para lançar!',
+                
+                # Atalhos de teclado
+                'keybinds_label': 'Atalhos de teclado',
+                'keybinds_desc': 'Personalize seus atalhos de teclado',
+                'command': 'Comando',
+                'add_game_label': 'Adicionar jogo',
+                'search_label': 'Pesquisar',
+                'clear_search_label': 'Limpar pesquisa',
+                'refresh_label': 'Atualizar',
+                'favorites_label': 'Favoritos',
+                'reset': 'Redefinir padrões',
+                'capture_keybind': 'Pressione a combinação de teclas...',
+                'capture_cancel': '(Pressione ESC para cancelar)',
+                'capture_button': '🎹 Capturar'
             },
             
             'nl': {
@@ -1992,6 +2356,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': 'Spel toevoegen',
+                'export_games': 'Spellen exporteren',
+                'import_games': 'Spellen importeren',
+                'export_game_dialog_title': 'Selecteer spellen om te exporteren',
+                'import_game_dialog_title': 'Spellen importeren',
+
+                'export_button': 'Selectie exporteren',
+                'import_button': 'Spellen importeren',
+                'exported_successfully': 'Spellen succesvol geëxporteerd',
+                'imported_successfully': 'Spellen succesvol geïmporteerd',
+                'export_failed': 'Fout bij het exporteren van spellen',
+                'import_failed': 'Fout bij het importeren van spellen',
                 'add_game_button': '+ Spel toevoegen',
                 'library': 'BIBLIOTHEEK',
                 'games_count': 'spellen',
@@ -2097,6 +2472,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': 'Hoe te gebruiken',
+                'report_bug_menu': 'Een fout melden',
                 'user_guide_title': 'Gebruikershandleiding - Hoe Avilon te gebruiken',
                 'guide_tab_games': 'Spellen',
                 'guide_tab_maps': 'Kaarten',
@@ -2107,15 +2483,15 @@ class AvalonGameManager:
                 'guide_games_title': '🎮 Spelbeheer',
                 'guide_games_add_title': '📝 Een spel toevoegen:',
                 'guide_games_add_content': '''1. Ga naar menu "Bestand" → "Spel toevoegen"
-2. Voer de spelnaam in
-3. Selecteer een afbeelding (optioneel):
+2. Typ de spelnaam in
+3. Typ een spelomschrijving in (optioneel)
+4. Selecteer een afbeelding (vereist):
    • Ondersteunde formaten: PNG, JPG, JPEG, BMP, GIF
    • Aanbevolen: 250x280 pixels
-4. Configureer de kaart (zie tab "Kaarten")
-5. Klik op "Opslaan"''',
+5. Configureer de kaart (zie tab "Kaarten")
+6. Klik op "Opslaan"''',
                 'guide_games_manage_title': '⚙️ Bestaande spellen beheren:',
                 'guide_games_manage_content': '''• Klik op ⭐ om als favoriet in/uit te schakelen
-• Gebruik "Kaart weergeven" om de kaart van het spel te openen
 • "Bewerken" om spelgegevens aan te passen
 • "Verwijderen" om het spel uit je bibliotheek te verwijderen''',
                 
@@ -2182,14 +2558,58 @@ class AvalonGameManager:
 • Escape wist altijd de huidige zoekopdracht
 • F1 is je snelle hulptoets''',
                 'guide_shortcuts_workflow_title': '⚡ Snelle Workflow',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N om snel spellen toe te voegen
-2. Ctrl + F om te zoeken zonder muis
-3. Escape om op te schonen en opnieuw te beginnen
-4. Ctrl + Shift + F om alleen favorieten te zien
-5. F5 om te vernieuwen bij handmatige bestandstoevoegingen''',
+                'guide_shortcuts_workflow_content': 'Toetsenbordsnelkoppelingen kunnen worden aangepast in het instellingenvenster. Open het instellingenvenster via het menu of druk op Ctrl + Shift + P om snelkoppelingen naar uw voorkeur aan te passen.',
+                'guide_shortcuts_open_settings': 'Instellingen openen',
                 
                 # Guide subtitle
-                'guide_subtitle': 'Alles wat je moet weten om Avilon te gebruiken'
+                'guide_subtitle': 'Alles wat je moet weten om Avilon te gebruiken',
+                
+                # Doelstellingen in gamepresentatie
+                'objectives': 'Doelstellingen',
+                'no_objectives': 'Geen doelstellingen',
+                'new_objective': 'Nieuwe doelstelling',
+                'write_objective': 'Schrijf de doelstelling:',
+                'add_objective': 'Doelstelling toevoegen',
+                
+                # Spelomschrijving en metagegevens
+                'game_description': 'Beschrijving (optioneel):',
+                'description': 'Beschrijving',
+                'added_date': 'Toegevoegde datum',
+                'play_time': 'Speeltijd',
+                'days': 'dagen',
+                'day': 'dag',
+                'hours': 'uren',
+                'hour': 'uur',
+                'minutes': 'minuten',
+                'minute': 'minuut',
+                'never_opened': 'Nog nooit geopend',
+                
+                # Splash Screen
+                'splash_subtitle': 'Kaartbibliotheker',
+                'splash_version': 'versie 2.8.9',
+                'splash_initializing': 'Starten...',
+                'splash_init_components': '🔧 Componenten initialiseren...',
+                'splash_loading_config': '⚙️ Configuratie laden...',
+                'splash_verifying_files': '📁 Bestanden verifiëren...',
+                'splash_setting_interface': '🎨 Interface configureren...',
+                'splash_preparing_library': '🎮 Spelbibliotheken voorbereiden...',
+                'splash_indexing_content': '🔍 Inhoud indexeren...',
+                'splash_final_touches': '✨ Laatste aanpassingen toepassen...',
+                'splash_ready': '🚀 Klaar om te starten!',
+                
+                # Sneltoetsen
+                'keybinds_label': 'Sneltoetsen',
+                'keybinds_desc': 'Pas uw sneltoetsen aan',
+                'command': 'Opdracht',
+                'add_game_label': 'Spel toevoegen',
+                'search_label': 'Zoeken',
+                'clear_search_label': 'Zoekterm wissen',
+                'refresh_label': 'Vernieuwen',
+                'favorites_label': 'Favorieten',
+                'reset': 'Standaardinstellingen herstellen',
+                'capture_keybind': 'Druk op de toetscombinatie...',
+                'capture_cancel': '(Druk op ESC om te annuleren)',
+                'capture_button': '🎹 Vastleggen'
             },
             
             'ru': {
@@ -2207,6 +2627,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': 'Добавить игру',
+                'export_games': 'Экспортировать игры',
+                'import_games': 'Импортировать игры',
+                'export_game_dialog_title': 'Выберите игры для экспорта',
+                'import_game_dialog_title': 'Импортировать игры',
+
+                'export_button': 'Экспортировать выбранное',
+                'import_button': 'Импортировать игры',
+                'exported_successfully': 'Игры успешно экспортированы',
+                'imported_successfully': 'Игры успешно импортированы',
+                'export_failed': 'Ошибка при экспорте игр',
+                'import_failed': 'Ошибка при импорте игр',
                 'add_game_button': '+ Добавить игру',
                 'library': 'БИБЛИОТЕКА',
                 'games_count': 'игр',
@@ -2312,6 +2743,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': 'Как использовать',
+                'report_bug_menu': 'Сообщить об ошибке',
                 'user_guide_title': 'Руководство пользователя - Как использовать Avilon',
                 'guide_tab_games': 'Игры',
                 'guide_tab_maps': 'Карты',
@@ -2323,14 +2755,14 @@ class AvalonGameManager:
                 'guide_games_add_title': '📝 Как добавить игру:',
                 'guide_games_add_content': '''1. Перейдите в меню "Файл" → "Добавить игру"
 2. Введите название игры
-3. Выберите изображение (опционально):
+3. Введите описание игры (опционально)
+4. Выберите изображение (обязательно):
    • Поддерживаемые форматы: PNG, JPG, JPEG, BMP, GIF
    • Рекомендуется: 250x280 пиксели
-4. Настройте карту (см. вкладку "Карты")
-5. Нажмите "Сохранить"''',
+5. Настройте карту (см. вкладку "Карты")
+6. Нажмите "Сохранить"''',
                 'guide_games_manage_title': '⚙️ Управление существующими играми:',
                 'guide_games_manage_content': '''• Нажмите на ⭐ для отмечения/отмены отметки избранного
-• Используйте "Показать карту" для открытия карты игры
 • "Редактировать" для изменения данных игры
 • "Удалить" для удаления игры из библиотеки''',
                 
@@ -2397,14 +2829,58 @@ class AvalonGameManager:
 • Escape всегда очищает текущий поиск
 • F1 - ваша клавиша быстрой помощи''',
                 'guide_shortcuts_workflow_title': '⚡ Быстрый Рабочий Процесс',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N для быстрого добавления игр
-2. Ctrl + F для поиска без мыши
-3. Escape для очистки и начала заново
-4. Ctrl + Shift + F для просмотра только избранного
-5. F5 для обновления при ручном добавлении файлов''',
+                'guide_shortcuts_workflow_content': 'Горячие клавиши можно настроить в окне Параметры. Откройте окно Параметры из меню или нажмите Ctrl + Shift + P, чтобы изменить горячие клавиши в соответствии с вашими предпочтениями.',
+                'guide_shortcuts_open_settings': 'Открыть параметры',
                 
                 # Guide subtitle
-                'guide_subtitle': 'Все, что вам нужно знать для использования Avilon'
+                'guide_subtitle': 'Все, что вам нужно знать для использования Avilon',
+                
+                # Цели в представлении игры
+                'objectives': 'Цели',
+                'no_objectives': 'Нет целей',
+                'new_objective': 'Новая цель',
+                'write_objective': 'Напишите цель:',
+                'add_objective': 'Добавить цель',
+                
+                # Описание игры и метаданные
+                'game_description': 'Описание (опционально):',
+                'description': 'Описание',
+                'added_date': 'Дата добавления',
+                'play_time': 'Время игры',
+                'days': 'дней',
+                'day': 'день',
+                'hours': 'часов',
+                'hour': 'час',
+                'minutes': 'минут',
+                'minute': 'минута',
+                'never_opened': 'Никогда не открыто',
+                
+                # Splash Screen
+                'splash_subtitle': 'Менеджер библиотеки карт',
+                'splash_version': 'версия 2.8.9',
+                'splash_initializing': 'Запуск...',
+                'splash_init_components': '🔧 Инициализация компонентов...',
+                'splash_loading_config': '⚙️ Загрузка конфигурации...',
+                'splash_verifying_files': '📁 Проверка файлов...',
+                'splash_setting_interface': '🎨 Настройка интерфейса...',
+                'splash_preparing_library': '🎮 Подготовка библиотеки игр...',
+                'splash_indexing_content': '🔍 Индексирование содержимого...',
+                'splash_final_touches': '✨ Применение финальных штрихов...',
+                'splash_ready': '🚀 Готово к запуску!',
+                
+                # Горячие клавиши
+                'keybinds_label': 'Горячие клавиши',
+                'keybinds_desc': 'Настройте свои горячие клавиши',
+                'command': 'Команда',
+                'add_game_label': 'Добавить игру',
+                'search_label': 'Поиск',
+                'clear_search_label': 'Очистить поиск',
+                'refresh_label': 'Обновить',
+                'favorites_label': 'Избранное',
+                'reset': 'Восстановить по умолчанию',
+                'capture_keybind': 'Нажмите комбинацию клавиш...',
+                'capture_cancel': '(Нажмите ESC для отмены)',
+                'capture_button': '🎹 Захватить'
             },
             
             'ja': {
@@ -2422,6 +2898,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': 'ゲームを追加',
+                'export_games': 'ゲームをエクスポート',
+                'import_games': 'ゲームをインポート',
+                'export_game_dialog_title': 'エクスポートするゲームを選択',
+                'import_game_dialog_title': 'ゲームをインポート',
+
+                'export_button': '選択したゲームをエクスポート',
+                'import_button': 'ゲームをインポート',
+                'exported_successfully': 'ゲームのエクスポートに成功しました',
+                'imported_successfully': 'ゲームのインポートに成功しました',
+                'export_failed': 'ゲームのエクスポートに失敗しました',
+                'import_failed': 'ゲームのインポートに失敗しました',
                 'add_game_button': '+ ゲームを追加',
                 'library': 'ライブラリ',
                 'games_count': 'ゲーム',
@@ -2527,6 +3014,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': '使い方',
+                'report_bug_menu': 'エラーを報告',
                 'user_guide_title': 'ユーザーガイド - Avilon の使い方',
                 'guide_tab_games': 'ゲーム',
                 'guide_tab_maps': 'マップ',
@@ -2538,14 +3026,14 @@ class AvalonGameManager:
                 'guide_games_add_title': '📝 ゲームを追加する方法:',
                 'guide_games_add_content': '''1. メニューの「ファイル」→「ゲームを追加」に進みます
 2. ゲーム名を入力します
-3. 画像を選択します(オプション):
+3. ゲーム説明を入力します(オプション)
+4. 画像を選択します(必須):
    • サポートされている形式: PNG、JPG、JPEG、BMP、GIF
    • 推奨: 250x280ピクセル
-4. マップを設定します(「マップ」タブを参照)
-5. 「保存」をクリックします''',
+5. マップを設定します(「マップ」タブを参照)
+6. 「保存」をクリックします''',
                 'guide_games_manage_title': '⚙️ 既存ゲームを管理する:',
                 'guide_games_manage_content': '''• ⭐ をクリックしてお気に入りのマークを付ける/削除する
-• 「マップを表示」を使用してゲームのマップを開く
 • 「編集」してゲームデータを変更する
 • 「削除」してゲームをライブラリから削除する''',
                 
@@ -2612,14 +3100,58 @@ class AvalonGameManager:
 • Escapeキーは常に現在の検索をクリアします
 • F1は素早いヘルプキーです''',
                 'guide_shortcuts_workflow_title': '⚡ クイックワークフロー',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N でゲームを素早く追加
-2. Ctrl + F でマウスなしで検索
-3. Escape でクリアして再度開始
-4. Ctrl + Shift + F でお気に入りのみ表示
-5. F5 で手動ファイル追加時に更新''',
+                'guide_shortcuts_workflow_content': 'キーボードショートカットは設定ウィンドウでカスタマイズできます。メニューから設定ウィンドウを開くか、Ctrl + Shift + P を押して、ショートカットを設定に合わせて変更してください。',
+                'guide_shortcuts_open_settings': '設定を開く',
                 
                 # Guide subtitle
-                'guide_subtitle': 'Avilon を使用するために知っておくべきすべてのこと'
+                'guide_subtitle': 'Avilon を使用するために知っておくべきすべてのこと',
+                
+                # ゲームプレゼンテーションの目的
+                'objectives': '目的',
+                'no_objectives': '目的なし',
+                'new_objective': '新しい目的',
+                'write_objective': '目的を記述してください:',
+                'add_objective': '目的を追加',
+                
+                # ゲームの説明とメタデータ
+                'game_description': '説明（オプション）:',
+                'description': '説明',
+                'added_date': '追加日',
+                'play_time': 'プレイ時間',
+                'days': '日',
+                'day': '日',
+                'hours': '時間',
+                'hour': '時間',
+                'minutes': '分',
+                'minute': '分',
+                'never_opened': 'まだ開かれていません',
+                
+                # Splash Screen
+                'splash_subtitle': 'マップライブラリマネージャー',
+                'splash_version': 'バージョン 2.8.9',
+                'splash_initializing': '起動中...',
+                'splash_init_components': '🔧 コンポーネントの初期化...',
+                'splash_loading_config': '⚙️ 設定の読み込み...',
+                'splash_verifying_files': '📁 ファイルの確認...',
+                'splash_setting_interface': '🎨 インターフェースの設定...',
+                'splash_preparing_library': '🎮 ゲームライブラリの準備...',
+                'splash_indexing_content': '🔍 コンテンツのインデックス作成...',
+                'splash_final_touches': '✨ 最後の仕上げを適用...',
+                'splash_ready': '🚀 起動準備完了!',
+                
+                # キーボードショートカット
+                'keybinds_label': 'キーボードショートカット',
+                'keybinds_desc': 'キーボードショートカットをカスタマイズする',
+                'command': 'コマンド',
+                'add_game_label': 'ゲーム追加',
+                'search_label': '検索',
+                'clear_search_label': '検索をクリア',
+                'refresh_label': '更新',
+                'favorites_label': 'お気に入り',
+                'reset': 'デフォルトにリセット',
+                'capture_keybind': 'キーの組み合わせを押してください...',
+                'capture_cancel': '(キャンセルするにはESCを押してください)',
+                'capture_button': '🎹 キャプチャ'
             },
             
             'zh': {
@@ -2637,6 +3169,17 @@ class AvalonGameManager:
                 # Main window
                 'window_title': 'Avilon',
                 'add_game': '添加游戏',
+                'export_games': '导出游戏',
+                'import_games': '导入游戏',
+                'export_game_dialog_title': '选择要导出的游戏',
+                'import_game_dialog_title': '导入游戏',
+
+                'export_button': '导出所选',
+                'import_button': '导入游戏',
+                'exported_successfully': '游戏导出成功',
+                'imported_successfully': '游戏导入成功',
+                'export_failed': '导出游戏失败',
+                'import_failed': '导入游戏失败',
                 'add_game_button': '+ 添加游戏',
                 'library': '游戏库',
                 'games_count': '游戏',
@@ -2742,6 +3285,7 @@ class AvalonGameManager:
                 
                 # User Guide
                 'how_to_use_menu': '如何使用',
+                'report_bug_menu': '报告错误',
                 'user_guide_title': '用户指南 - 如何使用 Avilon',
                 'guide_tab_games': '游戏',
                 'guide_tab_maps': '地图',
@@ -2752,15 +3296,15 @@ class AvalonGameManager:
                 'guide_games_title': '🎮 游戏管理',
                 'guide_games_add_title': '📝 如何添加游戏:',
                 'guide_games_add_content': '''1. 转到菜单"文件"→"添加游戏"
-2. 完成游戏名称
-3. 选择一张图像(可选):
+2. 输入游戏名称
+3. 输入游戏描述(可选)
+4. 选择一张图像(必需):
    • 支持的格式: PNG、JPG、JPEG、BMP、GIF
    • 建议: 250x280 像素
-4. 配置地图(请参见"地图"标签页)
-5. 单击"保存"''',
+5. 配置地图(请参见"地图"标签页)
+6. 单击"保存"''',
                 'guide_games_manage_title': '⚙️ 管理现有游戏:',
                 'guide_games_manage_content': '''• 单击 ⭐ 标记/取消标记为收藏
-• 使用"查看地图"打开游戏地图
 • "编辑"来修改游戏数据
 • "删除"从库中移除游戏''',
                 
@@ -2827,14 +3371,58 @@ class AvalonGameManager:
 • Escape 键始终清除当前搜索
 • F1 是您的快速帮助键''',
                 'guide_shortcuts_workflow_title': '⚡ 快速工作流程',
-                'guide_shortcuts_workflow_content': '''1. Ctrl + N 快速添加游戏
-2. Ctrl + F 不使用鼠标进行搜索
-3. Escape 清除并重新开始
-4. Ctrl + Shift + F 仅查看收藏夹
-5. F5 在手动添加文件时刷新''',
+                'guide_shortcuts_workflow_content': '可以在设置窗口中自定义键盘快捷键。从菜单打开设置窗口或按 Ctrl + Shift + P 根据您的偏好修改快捷键。',
+                'guide_shortcuts_open_settings': '打开设置',
                 
                 # Guide subtitle
-                'guide_subtitle': '您需要了解的有关使用 Avilon 的所有信息'
+                'guide_subtitle': '您需要了解的有关使用 Avilon 的所有信息',
+                
+                # 游戏呈现中的目标
+                'objectives': '目标',
+                'no_objectives': '没有目标',
+                'new_objective': '新目标',
+                'write_objective': '写下目标:',
+                'add_objective': '添加目标',
+                
+                # 游戏描述和元数据
+                'game_description': '描述（可选）:',
+                'description': '描述',
+                'added_date': '添加日期',
+                'play_time': '游戏时间',
+                'days': '天',
+                'day': '天',
+                'hours': '小时',
+                'hour': '小时',
+                'minutes': '分钟',
+                'minute': '分钟',
+                'never_opened': '从未打开',
+                
+                # Splash Screen
+                'splash_subtitle': '地图库管理器',
+                'splash_version': '版本 2.8.9',
+                'splash_initializing': '正在启动...',
+                'splash_init_components': '🔧 初始化组件...',
+                'splash_loading_config': '⚙️ 加载配置...',
+                'splash_verifying_files': '📁 验证文件...',
+                'splash_setting_interface': '🎨 设置界面...',
+                'splash_preparing_library': '🎮 准备游戏库...',
+                'splash_indexing_content': '🔍 索引内容...',
+                'splash_final_touches': '✨ 应用最后的调整...',
+                'splash_ready': '🚀 准备启动！',
+                
+                # 键盘快捷键
+                'keybinds_label': '键盘快捷键',
+                'keybinds_desc': '自定义您的键盘快捷键',
+                'command': '命令',
+                'add_game_label': '添加游戏',
+                'search_label': '搜索',
+                'clear_search_label': '清除搜索',
+                'refresh_label': '刷新',
+                'favorites_label': '收藏夹',
+                'reset': '恢复默认值',
+                'capture_keybind': '按下键盘组合...',
+                'capture_cancel': '(按ESC取消)',
+                'capture_button': '🎹 捕获'
             }
         }
     
@@ -2855,7 +3443,8 @@ class AvalonGameManager:
             config = {
                 'language': self.current_language,
                 'theme': self.current_theme,
-                'startup': getattr(self, 'startup_enabled', False)
+                'startup': getattr(self, 'startup_enabled', False),
+                'keybinds': getattr(self, 'keybinds', self.default_keybinds.copy())
             }
             with open(self.config_file, 'w', encoding='utf-8') as f:
                 json.dump(config, f, ensure_ascii=False, indent=4)
@@ -3278,6 +3867,8 @@ class AvalonGameManager:
         file_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label=self.get_text('file_menu'), menu=file_menu)
         file_menu.add_command(label=self.get_text('add_game'), command=self.show_add_game_dialog, accelerator="Ctrl+N")
+        file_menu.add_command(label=self.get_text('export_games'), command=self.show_export_games_dialog)
+        file_menu.add_command(label=self.get_text('import_games'), command=self.show_import_games_dialog)
         file_menu.add_separator()
         file_menu.add_command(label=self.get_text('config_menu'), command=self.show_config_dialog, accelerator="Ctrl+Shift+P")
         file_menu.add_separator()
@@ -3295,6 +3886,9 @@ class AvalonGameManager:
         help_menu = tk.Menu(menubar, tearoff=0)
         menubar.add_cascade(label=self.get_text('help_menu'), menu=help_menu)
         help_menu.add_command(label=self.get_text('how_to_use_menu'), command=self.show_user_guide_dialog, accelerator="F1")
+        help_menu.add_separator()
+        help_menu.add_command(label=self.get_text('report_bug_menu'), command=self.open_contact_page)
+        help_menu.add_separator()
         help_menu.add_command(label=self.get_text('about_menu'), command=self.show_about_dialog)
     
     def show_about_dialog(self):
@@ -3339,7 +3933,7 @@ class AvalonGameManager:
         
         # Versión
         version_label = ttk.Label(main_frame,
-                                 text="Versión 1.6.2",
+                                 text="Versión 2.8.9",
                                  style='Dark.TLabel',
                                  font=('Arial', 9, 'italic'))
         version_label.pack(pady=(0, 15))
@@ -3347,7 +3941,7 @@ class AvalonGameManager:
         # Logo
         try:
             # Cargar y mostrar el logo
-            from PIL import Image, ImageTk
+            from PIL import Image, ImageTk, ImageDraw
             if self.icon_path and os.path.exists(self.icon_path):
                 logo_image = Image.open(self.icon_path)
                 # Redimensionar el logo si es necesario (mantener proporciones)
@@ -3395,6 +3989,435 @@ class AvalonGameManager:
         
         # Mostrar la ventana una vez que está completamente configurada
         about_window.deiconify()
+    
+    def open_contact_page(self):
+        """Abrir la página de contacto en el navegador predeterminado"""
+        try:
+            webbrowser.open('https://avilon.es/contacto.html')
+        except Exception as e:
+            messagebox.showerror(self.get_text('error'), f"No se pudo abrir la página: {e}")
+    
+    def show_export_games_dialog(self):
+        """Mostrar diálogo para seleccionar juegos a exportar con vista de grid"""
+        if not self.games:
+            messagebox.showinfo(self.get_text('info'), self.get_text('no_games'))
+            return
+        
+        export_window = tk.Toplevel(self.root)
+        export_window.withdraw()
+        export_window.title(self.get_text('export_game_dialog_title'))
+        export_window.geometry("1500x850")
+        export_window.configure(bg=self.colors['bg_dark'])
+        export_window.resizable(True, True)
+        export_window.minsize(1000, 600)
+        self.apply_window_icon(export_window)
+        
+        export_window.transient(self.root)
+        export_window.grab_set()
+        
+        main_frame = tk.Frame(export_window, bg=self.colors['bg_dark'])
+        main_frame.pack(fill=tk.BOTH, expand=True)
+        
+        header_frame = tk.Frame(main_frame, bg=self.colors['bg_dark'])
+        header_frame.pack(fill='x', padx=0, pady=0)
+        
+        header_bg = tk.Frame(header_frame, bg=self.colors['bg_medium'], height=70)
+        header_bg.pack(fill='x')
+        header_bg.pack_propagate(False)
+        
+        title_label = tk.Label(header_bg, 
+                              text=self.get_text('export_game_dialog_title'),
+                              bg=self.colors['bg_medium'],
+                              fg=self.colors['accent'],
+                              font=('Segoe UI', 16, 'bold'))
+        title_label.pack(anchor='center', pady=15)
+        
+        games_container = tk.Frame(main_frame, bg=self.colors['bg_dark'])
+        games_container.pack(fill=tk.BOTH, expand=True, padx=20, pady=10)
+        
+        canvas = tk.Canvas(games_container, bg=self.colors['bg_dark'], highlightthickness=0)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['bg_dark'])
+        
+        def on_frame_configure(e):
+            canvas.configure(scrollregion=canvas.bbox('all'))
+            canvas_width = canvas.winfo_width()
+            if canvas_width > 1:
+                canvas.itemconfig(canvas_window, width=canvas_width)
+        
+        def on_canvas_configure(e):
+            canvas_width = canvas.winfo_width()
+            if canvas_width > 1:
+                canvas.itemconfig(canvas_window, width=canvas_width)
+        
+        scrollable_frame.bind('<Configure>', on_frame_configure)
+        canvas.bind('<Configure>', on_canvas_configure)
+        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
+        
+        scroll_active = [True]
+        
+        def on_canvas_enter(event):
+            scroll_active[0] = True
+            canvas.focus_set()
+        
+        def on_canvas_leave(event):
+            scroll_active[0] = False
+        
+        def on_mousewheel(event):
+            if scroll_active[0]:
+                scrollregion = canvas.cget('scrollregion')
+                if scrollregion:
+                    try:
+                        _, _, _, content_height = map(float, scrollregion.split())
+                        canvas_height = canvas.winfo_height()
+                        
+                        # Solo permitir scroll si el contenido es más alto que el canvas
+                        if content_height > canvas_height:
+                            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                    except (ValueError, AttributeError):
+                        pass
+                return "break"
+        
+        canvas.bind("<Enter>", on_canvas_enter)
+        canvas.bind("<Leave>", on_canvas_leave)
+        canvas.bind("<MouseWheel>", on_mousewheel)
+        
+        game_vars = {}
+        
+        games_grid_frame = tk.Frame(scrollable_frame, bg=self.colors['bg_dark'])
+        games_grid_frame.pack(fill='x', padx=10, pady=10)
+        
+        scrollable_frame.bind("<Enter>", on_canvas_enter)
+        scrollable_frame.bind("<Leave>", on_canvas_leave)
+        scrollable_frame.bind("<MouseWheel>", on_mousewheel)
+        games_grid_frame.bind("<Enter>", on_canvas_enter)
+        games_grid_frame.bind("<Leave>", on_canvas_leave)
+        games_grid_frame.bind("<MouseWheel>", on_mousewheel)
+        
+        cols = 8
+        for col in range(cols):
+            games_grid_frame.grid_columnconfigure(col, weight=1)
+        
+        for idx, game in enumerate(self.games):
+            game_vars[game['name']] = tk.BooleanVar(value=False)
+            row = idx // cols
+            col = idx % cols
+            self.create_export_game_card(games_grid_frame, game, game_vars[game['name']], row, col, scroll_active, canvas, on_mousewheel, on_canvas_enter, on_canvas_leave)
+        
+        # Configurar las filas del grid
+        num_rows = (len(self.games) + cols - 1) // cols if self.games else 0
+        for row in range(num_rows):
+            games_grid_frame.grid_rowconfigure(row, weight=0)
+        
+        canvas.pack(side='left', fill='both', expand=True)
+        
+        buttons_frame = tk.Frame(main_frame, bg=self.colors['bg_medium'])
+        buttons_frame.pack(fill='x', padx=0, pady=0, side='bottom')
+        
+        buttons_container = tk.Frame(buttons_frame, bg=self.colors['bg_medium'])
+        buttons_container.pack(fill='x', padx=20, pady=15)
+        
+        def export_selected():
+            selected_games = [g for g in self.games if game_vars[g['name']].get()]
+            if not selected_games:
+                messagebox.showwarning(self.get_text('warning'), self.get_text('no_games'))
+                return
+            
+            file_path = filedialog.asksaveasfilename(
+                defaultextension=".zip",
+                filetypes=[("ZIP files", "*.zip"), ("All files", "*.*")],
+                initialfile="exported_games.zip"
+            )
+            
+            if file_path:
+                try:
+                    self.export_games_to_file(selected_games, file_path)
+                    messagebox.showinfo(self.get_text('success'), self.get_text('exported_successfully'))
+                    export_window.destroy()
+                except Exception as e:
+                    messagebox.showerror(self.get_text('error'), f"{self.get_text('export_failed')}: {str(e)}")
+        
+        cancel_btn = tk.Button(buttons_container,
+                              text=self.get_text('cancel'),
+                              bg=self.colors['bg_light'],
+                              fg=self.colors['text'],
+                              font=('Segoe UI', 10, 'bold'),
+                              relief='flat',
+                              cursor='hand2',
+                              padx=35,
+                              pady=8,
+                              command=export_window.destroy)
+        cancel_btn.pack(side='right', padx=(10, 0))
+        
+        self._add_hover_effect(cancel_btn, self.colors['bg_light'], '#505060')
+        
+        export_btn = tk.Button(buttons_container,
+                              text=self.get_text('export_button'),
+                              bg=self.colors['accent'],
+                              fg='white',
+                              font=('Segoe UI', 10, 'bold'),
+                              relief='flat',
+                              cursor='hand2',
+                              padx=35,
+                              pady=10,
+                              command=export_selected)
+        export_btn.pack(side='right', padx=5)
+        
+        self._add_hover_effect(export_btn, self.colors['accent'], self.colors.get('accent_hover', '#5b7fde'))
+        
+        export_window.update_idletasks()
+        x = (export_window.winfo_screenwidth() - 1500) // 2
+        y = (export_window.winfo_screenheight() - 850) // 2
+        export_window.geometry(f"1500x850+{x}+{y}")
+        export_window.deiconify()
+    
+    def create_export_game_card(self, parent, game, game_var, row, col, scroll_active=None, canvas=None, on_mousewheel=None, on_canvas_enter=None, on_canvas_leave=None):
+        """Crear tarjeta de juego para diálogo de exportación con layout grid"""
+        card_container = tk.Frame(parent, bg=self.colors['bg_dark'])
+        card_container.grid(row=row, column=col, padx=10, pady=10, sticky='nsew')
+        
+        if on_canvas_enter and on_canvas_leave:
+            card_container.bind("<Enter>", on_canvas_enter)
+            card_container.bind("<Leave>", on_canvas_leave)
+        
+        if on_mousewheel:
+            card_container.bind("<MouseWheel>", on_mousewheel)
+        
+        card_frame = tk.Frame(card_container, bg=self.colors['bg_light'], highlightthickness=2, relief='flat', bd=0, highlightbackground='#404050')
+        card_frame.pack(fill='both', expand=True)
+        
+        top_frame = tk.Frame(card_frame, bg=self.colors['bg_light'], height=180)
+        top_frame.pack(fill='x', padx=0, pady=0)
+        top_frame.pack_propagate(False)
+        
+        try:
+            image = Image.open(game['image_path'])
+            thumbnail = image.copy()
+            thumbnail.thumbnail((170, 170), Image.Resampling.LANCZOS)
+            photo = ImageTk.PhotoImage(thumbnail)
+            
+            image_label = tk.Label(top_frame, 
+                                  image=photo,
+                                  bg=self.colors['bg_light'],
+                                  bd=0,
+                                  highlightthickness=0,
+                                  cursor='hand2')
+            image_label.image = photo
+            image_label.pack(fill='both', expand=True, padx=8, pady=8)
+        except Exception as e:
+            placeholder = tk.Label(top_frame,
+                                  text="🎮",
+                                  bg=self.colors['bg_light'],
+                                  fg=self.colors['text_muted'],
+                                  font=('Segoe UI', 60),
+                                  cursor='hand2')
+            placeholder.pack(fill='both', expand=True, padx=8, pady=8)
+            image_label = placeholder
+        
+        content_frame = tk.Frame(card_frame, bg=self.colors['bg_light'])
+        content_frame.pack(fill='both', expand=True, padx=12, pady=10)
+        
+        checkbox = tk.Checkbutton(content_frame,
+                                 variable=game_var,
+                                 bg=self.colors['bg_light'],
+                                 fg=self.colors['text'],
+                                 activebackground=self.colors['bg_light'],
+                                 activeforeground=self.colors['text'],
+                                 cursor='hand2',
+                                 selectcolor=self.colors['accent'])
+        checkbox.pack(side='left', padx=(0, 8), pady=0)
+        
+        text_frame = tk.Frame(content_frame, bg=self.colors['bg_light'], cursor='hand2')
+        text_frame.pack(side='left', fill='both', expand=True)
+        
+        name_label = tk.Label(text_frame,
+                             text=game['name'][:22] + "..." if len(game['name']) > 22 else game['name'],
+                             bg=self.colors['bg_light'],
+                             fg=self.colors['text_primary'],
+                             font=('Segoe UI', 10, 'bold'),
+                             anchor='w',
+                             justify='left',
+                             cursor='hand2',
+                             wraplength=150)
+        name_label.pack(fill='x', anchor='w', pady=(0, 3))
+        
+        description = game.get('description', '')
+        desc_preview = description[:45] + "..." if len(description) > 45 else description
+        desc_label = tk.Label(text_frame,
+                             text=desc_preview if desc_preview else "—",
+                             bg=self.colors['bg_light'],
+                             fg=self.colors['text_secondary'],
+                             font=('Segoe UI', 8),
+                             anchor='w',
+                             justify='left',
+                             cursor='hand2',
+                             wraplength=150)
+        desc_label.pack(fill='x', anchor='w', pady=(0, 0))
+        
+        def toggle_checkbox(event=None):
+            game_var.set(not game_var.get())
+        
+        def on_card_enter(event):
+            card_frame.config(bg='#2a2f38', highlightbackground=self.colors['accent'])
+            top_frame.config(bg='#2a2f38')
+            content_frame.config(bg='#2a2f38')
+            name_label.config(bg='#2a2f38', fg='#ffffff')
+            desc_label.config(bg='#2a2f38', fg='#c0c0c8')
+            text_frame.config(bg='#2a2f38')
+            if image_label:
+                image_label.config(bg='#2a2f38')
+            checkbox.config(bg='#2a2f38', activebackground='#2a2f38')
+        
+        def on_card_leave(event):
+            card_frame.config(bg=self.colors['bg_light'], highlightbackground='#404050')
+            top_frame.config(bg=self.colors['bg_light'])
+            content_frame.config(bg=self.colors['bg_light'])
+            name_label.config(bg=self.colors['bg_light'], fg=self.colors['text_primary'])
+            desc_label.config(bg=self.colors['bg_light'], fg=self.colors['text_secondary'])
+            text_frame.config(bg=self.colors['bg_light'])
+            if image_label:
+                image_label.config(bg=self.colors['bg_light'])
+            checkbox.config(bg=self.colors['bg_light'], activebackground=self.colors['bg_light'])
+        
+        def on_card_hover_enter(event):
+            on_card_enter(event)
+        
+        def on_card_hover_leave(event):
+            on_card_leave(event)
+        
+        card_frame.bind("<Enter>", on_card_hover_enter)
+        card_frame.bind("<Leave>", on_card_hover_leave)
+        top_frame.bind("<Enter>", on_card_hover_enter)
+        top_frame.bind("<Leave>", on_card_hover_leave)
+        image_label.bind("<Enter>", on_card_hover_enter)
+        image_label.bind("<Leave>", on_card_hover_leave)
+        name_label.bind("<Enter>", on_card_hover_enter)
+        name_label.bind("<Leave>", on_card_hover_leave)
+        content_frame.bind("<Enter>", on_card_hover_enter)
+        content_frame.bind("<Leave>", on_card_hover_leave)
+        text_frame.bind("<Enter>", on_card_hover_enter)
+        text_frame.bind("<Leave>", on_card_hover_leave)
+        checkbox.bind("<Enter>", on_card_hover_enter)
+        checkbox.bind("<Leave>", on_card_hover_leave)
+        desc_label.bind("<Enter>", on_card_hover_enter)
+        desc_label.bind("<Leave>", on_card_hover_leave)
+        
+        if on_mousewheel:
+            card_frame.bind("<MouseWheel>", on_mousewheel)
+            top_frame.bind("<MouseWheel>", on_mousewheel)
+            image_label.bind("<MouseWheel>", on_mousewheel)
+            name_label.bind("<MouseWheel>", on_mousewheel)
+            content_frame.bind("<MouseWheel>", on_mousewheel)
+            text_frame.bind("<MouseWheel>", on_mousewheel)
+            checkbox.bind("<MouseWheel>", on_mousewheel)
+            desc_label.bind("<MouseWheel>", on_mousewheel)
+        
+        def on_text_click(event):
+            toggle_checkbox()
+        
+        image_label.bind("<Button-1>", on_text_click)
+        name_label.bind("<Button-1>", on_text_click)
+        desc_label.bind("<Button-1>", on_text_click)
+    
+    def export_games_to_file(self, games, file_path):
+        """Exportar juegos a archivo ZIP"""
+        import zipfile
+        import json
+        import os
+        
+        with zipfile.ZipFile(file_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
+            for game in games:
+                map_content = game.get('map_content', '')
+                map_type = game.get('map_type', 'image')
+                
+                game_data = {
+                    'name': game['name'],
+                    'description': game.get('description', ''),
+                    'map_type': map_type,
+                    'map_content': map_content,
+                    'favorite': game.get('favorite', False)
+                }
+                
+                zipf.writestr(f"{game['name']}/game_data.json", json.dumps(game_data, ensure_ascii=False, indent=2))
+                
+                if os.path.exists(game['image_path']):
+                    zipf.write(game['image_path'], arcname=f"{game['name']}/image{os.path.splitext(game['image_path'])[1]}")
+                
+                if map_type == 'image' and map_content and os.path.exists(map_content):
+                    zipf.write(map_content, arcname=f"{game['name']}/map{os.path.splitext(map_content)[1]}")
+    
+    def show_import_games_dialog(self):
+        """Mostrar diálogo para importar juegos"""
+        file_path = filedialog.askopenfilename(
+            filetypes=[("ZIP files", "*.zip"), ("All files", "*.*")],
+            title=self.get_text('import_game_dialog_title')
+        )
+        
+        if file_path:
+            try:
+                self.import_games_from_file(file_path)
+                messagebox.showinfo(self.get_text('success'), self.get_text('imported_successfully'))
+                self.refresh_games_display()
+            except Exception as e:
+                messagebox.showerror(self.get_text('error'), f"{self.get_text('import_failed')}: {str(e)}")
+    
+    def import_games_from_file(self, file_path):
+        """Importar juegos desde archivo ZIP"""
+        import zipfile
+        import json
+        import os
+        from PIL import Image
+        
+        with zipfile.ZipFile(file_path, 'r') as zipf:
+            for folder in set([name.split('/')[0] for name in zipf.namelist()]):
+                if folder:
+                    try:
+                        game_data_str = zipf.read(f"{folder}/game_data.json").decode('utf-8')
+                        game_data = json.loads(game_data_str)
+                        
+                        games_dir = os.path.join(os.path.dirname(self.config_file), 'games_images')
+                        os.makedirs(games_dir, exist_ok=True)
+                        
+                        image_files = [f for f in zipf.namelist() if f.startswith(f"{folder}/image")]
+                        
+                        if image_files:
+                            image_file = image_files[0]
+                            image_data = zipf.read(image_file)
+                            image_path = os.path.join(games_dir, f"{game_data['name']}{os.path.splitext(image_file)[1]}")
+                            with open(image_path, 'wb') as img_file:
+                                img_file.write(image_data)
+                        else:
+                            image_path = ""
+                        
+                        map_content = game_data.get('map_content', '')
+                        map_type = game_data.get('map_type', 'image')
+                        
+                        if map_type == 'image':
+                            map_files = [f for f in zipf.namelist() if f.startswith(f"{folder}/map")]
+                            if map_files:
+                                map_file = map_files[0]
+                                map_data = zipf.read(map_file)
+                                map_path = os.path.join(games_dir, f"{game_data['name']}_map{os.path.splitext(map_file)[1]}")
+                                with open(map_path, 'wb') as map_img_file:
+                                    map_img_file.write(map_data)
+                                map_content = map_path
+                        
+                        new_game = {
+                            'name': game_data['name'],
+                            'description': game_data.get('description', ''),
+                            'image_path': image_path,
+                            'map_type': map_type,
+                            'map_content': map_content,
+                            'favorite': game_data.get('favorite', False),
+                            'tasks': [],
+                            'date_added': datetime.now().isoformat()
+                        }
+                        
+                        if new_game['name'] not in [g['name'] for g in self.games]:
+                            self.games.append(new_game)
+                    except Exception as e:
+                        print(f"Error importing game from {folder}: {e}")
+        
+        self.save_games()
     
     def show_user_guide_dialog(self):
         """Mostrar ventana de Guía de Usuario con diseño ultra moderno"""
@@ -3594,7 +4617,7 @@ class AvalonGameManager:
         
         return rgb_to_hex(mixed_rgb)
     
-    def create_modern_card(self, parent, icon, title, content, icon_bg=None, action_button=None):
+    def create_modern_card(self, parent, icon, title, content, icon_bg=None, action_button=None, icon_font_size=20):
         """Crear una tarjeta moderna e interactiva para la guía"""
         if icon_bg is None:
             icon_bg = self.colors['accent']
@@ -3632,7 +4655,7 @@ class AvalonGameManager:
         glow_color = self.blend_colors(icon_bg, self.colors['bg_medium'], 0.3)
         icon_canvas.create_oval(5, 5, 55, 55, fill=glow_color, outline='', width=0)
         icon_canvas.create_oval(8, 8, 52, 52, fill=icon_bg, outline='', width=0)
-        icon_canvas.create_text(30, 30, text=icon, fill='white', font=('Segoe UI Emoji', 20, 'bold'))
+        icon_canvas.create_text(30, 30, text=icon, fill='white', font=('Segoe UI Emoji', icon_font_size, 'bold'))
         
         # Área de texto
         text_frame = tk.Frame(header_frame, bg=self.colors['bg_medium'])
@@ -3843,6 +4866,7 @@ class AvalonGameManager:
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -3909,6 +4933,7 @@ class AvalonGameManager:
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -3984,6 +5009,7 @@ class AvalonGameManager:
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4059,6 +5085,7 @@ class AvalonGameManager:
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4142,6 +5169,7 @@ class AvalonGameManager:
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4232,6 +5260,7 @@ class AvalonGameManager:
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4335,6 +5364,7 @@ class AvalonGameManager:
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4438,6 +5468,7 @@ class AvalonGameManager:
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
             canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4516,13 +5547,23 @@ class AvalonGameManager:
             '#8b5cf6',  # Púrpura moderno
         )
         
-        # Empaquetar canvas y scrollbar
+        # Empaquetar canvas (scrollbar oculto pero funcional)
         canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
         
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            scrollregion = canvas.cget('scrollregion')
+            if scrollregion:
+                try:
+                    _, _, _, content_height = map(float, scrollregion.split())
+                    canvas_height = canvas.winfo_height()
+                    
+                    # Solo permitir scroll si el contenido es más alto que el canvas
+                    if content_height > canvas_height:
+                        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                except (ValueError, AttributeError):
+                    pass
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4597,13 +5638,23 @@ class AvalonGameManager:
             '#06b6d4',  # Cian
         )
         
-        # Empaquetar canvas y scrollbar
+        # Empaquetar canvas (scrollbar oculto pero funcional)
         canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
         
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            scrollregion = canvas.cget('scrollregion')
+            if scrollregion:
+                try:
+                    _, _, _, content_height = map(float, scrollregion.split())
+                    canvas_height = canvas.winfo_height()
+                    
+                    # Solo permitir scroll si el contenido es más alto que el canvas
+                    if content_height > canvas_height:
+                        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                except (ValueError, AttributeError):
+                    pass
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4682,13 +5733,23 @@ class AvalonGameManager:
             '#f59e0b',  # Ámbar
         )
         
-        # Empaquetar canvas y scrollbar
+        # Empaquetar canvas (scrollbar oculto pero funcional)
         canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
         
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            scrollregion = canvas.cget('scrollregion')
+            if scrollregion:
+                try:
+                    _, _, _, content_height = map(float, scrollregion.split())
+                    canvas_height = canvas.winfo_height()
+                    
+                    # Solo permitir scroll si el contenido es más alto que el canvas
+                    if content_height > canvas_height:
+                        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                except (ValueError, AttributeError):
+                    pass
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4761,15 +5822,26 @@ class AvalonGameManager:
             self.get_text('guide_tips_maps_title'),
             self.get_text('guide_tips_maps_content'),
             '#10b981',  # Verde
+            icon_font_size=16
         )
         
-        # Empaquetar canvas y scrollbar
+        # Empaquetar canvas (scrollbar oculto pero funcional)
         canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
         
         # Configurar scroll con rueda del ratón - sistema mejorado
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            scrollregion = canvas.cget('scrollregion')
+            if scrollregion:
+                try:
+                    _, _, _, content_height = map(float, scrollregion.split())
+                    canvas_height = canvas.winfo_height()
+                    
+                    # Solo permitir scroll si el contenido es más alto que el canvas
+                    if content_height > canvas_height:
+                        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                except (ValueError, AttributeError):
+                    pass
+            return "break"
         
         # Sistema de scroll mejorado - bind directo al canvas y sus hijos
         def bind_mousewheel_recursive(widget):
@@ -4851,15 +5923,32 @@ class AvalonGameManager:
             self.get_text('guide_shortcuts_workflow_title'),
             self.get_text('guide_shortcuts_workflow_content'),
             '#f59e0b',  # Amarillo/Naranja
+            action_button={
+                'text': self.get_text('guide_shortcuts_open_settings'),
+                'command': self.show_config_dialog
+            }
         )
         
-        # Empaquetar canvas y scrollbar
+        # Empaquetar canvas (scrollbar oculto pero funcional)
         canvas.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
         
         # Configurar scroll con rueda del ratón
         def _on_mousewheel(event):
-            canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            scrollregion = canvas.cget('scrollregion')
+            if scrollregion:
+                try:
+                    _, _, _, content_height = map(float, scrollregion.split())
+                    canvas_height = canvas.winfo_height()
+                    
+                    # Solo permitir scroll si el contenido es más alto que el canvas
+                    if content_height > canvas_height:
+                        canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                    
+                    # Retornar "break" para evitar que el evento se propague a la ventana principal
+                    return "break"
+                except (ValueError, AttributeError):
+                    return "break"
+            return "break"
         
         # Sistema de scroll mejorado
         def bind_mousewheel_recursive(widget):
@@ -4879,7 +5968,7 @@ class AvalonGameManager:
         config_window = tk.Toplevel(self.root)
         config_window.withdraw()  # Ocultar la ventana inicialmente
         config_window.title(self.get_text('config_title'))
-        config_window.geometry("550x800")
+        config_window.geometry("850x1300")
         config_window.configure(bg=self.colors['bg_dark'])
         config_window.resizable(True, True)  # Permitir redimensionar para mayor flexibilidad
         self.apply_window_icon(config_window)
@@ -5020,14 +6109,31 @@ class AvalonGameManager:
         actual_startup_status = self.check_startup_status()
         self.temp_startup = tk.BooleanVar(value=actual_startup_status)
         
+        # Frame contenedor para el checkbox con hover mejorado
+        startup_option_frame = tk.Frame(startup_card, 
+                                       bg=self.colors['bg_medium'],
+                                       relief='flat',
+                                       borderwidth=0)
+        startup_option_frame.pack(fill=tk.X, pady=(10, 15))
+        
+        # Efecto de hover para el frame
+        def on_startup_enter(event):
+            startup_option_frame.configure(bg=self.colors['bg_light'])
+        
+        def on_startup_leave(event):
+            startup_option_frame.configure(bg=self.colors['bg_medium'])
+        
+        startup_option_frame.bind('<Enter>', on_startup_enter)
+        startup_option_frame.bind('<Leave>', on_startup_leave)
+        
         # CHECKBOX con diseño integrado
-        startup_checkbox = tk.Checkbutton(startup_card,
+        startup_checkbox = tk.Checkbutton(startup_option_frame,
                                          text=self.get_text('startup_auto_start_label'),
                                          variable=self.temp_startup,
                                          bg=self.colors['bg_medium'],
                                          fg=self.colors['text_primary'],
                                          selectcolor=self.colors['accent'],
-                                         activebackground=self.colors['bg_medium'],
+                                         activebackground=self.colors['bg_light'],
                                          activeforeground=self.colors['text_primary'],
                                          font=('Segoe UI', 11, 'bold'),
                                          relief='flat',
@@ -5036,17 +6142,87 @@ class AvalonGameManager:
                                          pady=10,
                                          cursor='hand2',
                                          anchor='w')
-        startup_checkbox.pack(fill=tk.X, pady=(10, 15))
+        startup_checkbox.pack(fill=tk.X)
         
-        # === ÁREA DE BOTONES REDISEÑADA ===
+        # Hacer que el checkbox también dispare los eventos del frame
+        startup_checkbox.bind('<Enter>', on_startup_enter)
+        startup_checkbox.bind('<Leave>', on_startup_leave)
         
-        # Frame principal para botones con el mismo fondo que la ventana
-        button_area = tk.Frame(main_frame, bg=self.colors['bg_dark'])
-        button_area.pack(fill=tk.X, pady=(25, 30))
+        # === SECCIÓN DE ATAJOS DE TECLADO ===
+        self.create_config_section(main_frame, "⌨️", self.get_text('keybinds_label') if 'keybinds_label' in self.translations.get(self.current_language, {}) else 'Atajos de teclado', 
+                                  self.get_text('keybinds_desc') if 'keybinds_desc' in self.translations.get(self.current_language, {}) else 'Personaliza los atajos de teclado')
         
-        # Frame interno para botones
-        button_container = tk.Frame(button_area, bg=self.colors['bg_dark'])
-        button_container.pack(pady=15, padx=20)
+        keybinds_card = self.create_config_card(main_frame)
+        
+        keybinds_descriptions = {
+            'add_game': self.get_text('add_game_label'),
+            'config': self.get_text('config_menu'),
+            'help': self.get_text('help_label'),
+            'search': self.get_text('search_label'),
+            'clear_search': self.get_text('clear_search_label'),
+            'refresh': self.get_text('refresh_label'),
+            'favorites': self.get_text('favorites_label'),
+            'exit': self.get_text('exit_menu')
+        }
+        
+        self.temp_keybinds = {}
+        
+        keybind_widgets = tk.Frame(keybinds_card, bg=self.colors['bg_medium'])
+        keybind_widgets.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
+        
+        header_frame = tk.Frame(keybind_widgets, bg=self.colors['bg_medium'], height=30)
+        header_frame.pack(fill=tk.X, pady=(0, 10))
+        
+        header_label = tk.Label(header_frame, text=self.get_text('keybinds_label'), bg=self.colors['bg_medium'], fg=self.colors['text_secondary'], font=('Segoe UI', 9, 'bold'))
+        header_label.pack(side=tk.LEFT, padx=5)
+        
+        header_command = tk.Label(header_frame, text=self.get_text('command'), bg=self.colors['bg_medium'], fg=self.colors['text_secondary'], font=('Segoe UI', 9, 'bold'))
+        header_command.pack(side=tk.LEFT, padx=150)
+        
+        reset_keybinds_btn = tk.Button(header_frame, 
+                                      text='↻',
+                                      bg=self.colors['accent'],
+                                      fg='white',
+                                      font=('Segoe UI', 12, 'bold'),
+                                      relief='flat',
+                                      borderwidth=0,
+                                      padx=10,
+                                      pady=2,
+                                      cursor='hand2',
+                                      command=lambda: self.reset_keybinds_to_default(self.temp_keybinds),
+                                      activebackground=self.colors.get('accent_hover', self.colors['accent']),
+                                      activeforeground='white')
+        reset_keybinds_btn.pack(side=tk.RIGHT, padx=5)
+        
+        for key_id, desc in keybinds_descriptions.items():
+            keybind_row = tk.Frame(keybind_widgets, bg=self.colors['bg_light'], highlightthickness=1, highlightbackground=self.colors['bg_dark'])
+            keybind_row.pack(fill=tk.X, pady=4, padx=3)
+            
+            label = tk.Label(keybind_row, text=desc, bg=self.colors['bg_light'], fg=self.colors['text_primary'], font=('Segoe UI', 10), width=20, anchor='w')
+            label.pack(side=tk.LEFT, padx=10, pady=8)
+            
+            self.temp_keybinds[key_id] = tk.StringVar(value=self.keybinds.get(key_id, self.default_keybinds.get(key_id, '')))
+            
+            entry = tk.Entry(keybind_row, textvariable=self.temp_keybinds[key_id], bg=self.colors['bg_dark'], fg=self.colors['accent'], font=('Segoe UI', 10, 'bold'), state='readonly', relief='solid', borderwidth=1, width=20)
+            entry.pack(side=tk.LEFT, padx=5, pady=8)
+            
+            capture_btn = tk.Button(keybind_row, 
+                                   text=self.get_text('capture_button'),
+                                   bg=self.colors['accent'],
+                                   fg='white',
+                                   font=('Segoe UI', 9, 'bold'),
+                                   relief='flat',
+                                   borderwidth=0,
+                                   padx=15,
+                                   pady=5,
+                                   cursor='hand2',
+                                   command=lambda k=key_id: self.capture_keybind_dialog(k, config_window),
+                                   activebackground=self.colors.get('accent_hover', self.colors['accent']),
+                                   activeforeground='white')
+            capture_btn.pack(side=tk.LEFT, padx=5, pady=8)
+        
+        button_container = tk.Frame(keybinds_card, bg=self.colors['bg_medium'])
+        button_container.pack(fill=tk.X, padx=5, pady=(15, 5))
         
         # BOTÓN CANCELAR - más pequeño
         cancel_btn = tk.Button(button_container,
@@ -5092,23 +6268,12 @@ class AvalonGameManager:
         def on_cancel_leave(event):
             cancel_btn.configure(bg='#dc3545')
         
-        # Efectos de click
-        def on_save_click(event):
-            save_btn.configure(relief='sunken')
-            save_btn.after(100, lambda: save_btn.configure(relief='flat'))
-        
-        def on_cancel_click(event):
-            cancel_btn.configure(relief='sunken')
-            cancel_btn.after(100, lambda: cancel_btn.configure(relief='flat'))
-        
         # Binding de eventos
         save_btn.bind('<Enter>', on_save_enter)
         save_btn.bind('<Leave>', on_save_leave)
-        save_btn.bind('<Button-1>', on_save_click)
         
         cancel_btn.bind('<Enter>', on_cancel_enter)
         cancel_btn.bind('<Leave>', on_cancel_leave)
-        cancel_btn.bind('<Button-1>', on_cancel_click)
         
         # Centrar la ventana en la pantalla
         config_window.update_idletasks()
@@ -5116,8 +6281,108 @@ class AvalonGameManager:
         y = (config_window.winfo_screenheight() - config_window.winfo_height()) // 2
         config_window.geometry(f"+{x}+{y}")
         
+        # Bind para Enter - hacer click en guardar
+        def on_enter_press(event):
+            self.apply_config_changes(config_window, language_combo, theme_combo, 
+                                    lang_display_values, theme_display_values,
+                                    title_label, subtitle_label, 
+                                    save_btn, cancel_btn)
+        
+        config_window.bind('<Return>', on_enter_press)
+        
         # Mostrar la ventana una vez que está completamente configurada
         config_window.deiconify()
+    
+    def capture_keybind_dialog(self, key_id, parent_window):
+        """Abrir diálogo para capturar combinación de teclas"""
+        capture_window = tk.Toplevel(parent_window)
+        capture_window.withdraw()
+        capture_window.title(self.get_text('config_title'))
+        capture_window.geometry("400x150")
+        capture_window.configure(bg=self.colors['bg_dark'])
+        capture_window.resizable(False, False)
+        self.apply_window_icon(capture_window)
+        
+        capture_window.transient(parent_window)
+        capture_window.grab_set()
+        
+        capture_text = self.get_text('capture_keybind') if 'capture_keybind' in self.translations.get(self.current_language, {}) else 'Presiona la combinación de teclas...'
+        cancel_text = self.get_text('capture_cancel') if 'capture_cancel' in self.translations.get(self.current_language, {}) else '(Presiona ESC para cancelar)'
+        
+        label = tk.Label(capture_window, 
+                        text=capture_text,
+                        bg=self.colors['bg_dark'],
+                        fg=self.colors['text_primary'],
+                        font=('Segoe UI', 14, 'bold'),
+                        pady=20)
+        label.pack()
+        
+        info_label = tk.Label(capture_window,
+                             text=cancel_text,
+                             bg=self.colors['bg_dark'],
+                             fg=self.colors['text_secondary'],
+                             font=('Segoe UI', 10))
+        info_label.pack()
+        
+        captured_keys = {'control': False, 'shift': False, 'alt': False, 'keys': []}
+        
+        def on_key_press(event):
+            captured_keys['keys'] = []
+            
+            if event.state & 0x0004:
+                captured_keys['control'] = True
+            if event.state & 0x0001:
+                captured_keys['shift'] = True
+            if event.state & 0x0008:
+                captured_keys['alt'] = True
+            
+            keysym = event.keysym.lower()
+            
+            if keysym == 'escape':
+                capture_window.destroy()
+                return
+            
+            if keysym not in ['control_l', 'control_r', 'shift_l', 'shift_r', 'alt_l', 'alt_r']:
+                captured_keys['keys'].append(event.keysym)
+            
+            if keysym not in ['control_l', 'control_r', 'shift_l', 'shift_r', 'alt_l', 'alt_r']:
+                keybind_str = self._format_keybind(captured_keys)
+                self.temp_keybinds[key_id].set(keybind_str)
+                capture_window.destroy()
+        
+        capture_window.bind('<KeyPress>', on_key_press)
+        
+        x = (capture_window.winfo_screenwidth() - capture_window.winfo_width()) // 2
+        y = (capture_window.winfo_screenheight() - capture_window.winfo_height()) // 2
+        capture_window.geometry(f"+{x}+{y}")
+        
+        capture_window.update_idletasks()
+        capture_window.deiconify()
+        capture_window.focus_set()
+    
+    def _format_keybind(self, captured_keys):
+        """Formatear la combinación de teclas en formato Tkinter"""
+        parts = []
+        
+        if captured_keys['control']:
+            parts.append('Control')
+        if captured_keys['shift']:
+            parts.append('Shift')
+        if captured_keys['alt']:
+            parts.append('Alt')
+        
+        if captured_keys['keys']:
+            key = captured_keys['keys'][0]
+            if key.startswith('F') and len(key) > 1 and key[1:].isdigit():
+                parts.append(key)
+            elif key in ['space', 'Tab', 'Return', 'Escape']:
+                parts.append(key)
+            else:
+                parts.append(key.lower() if len(key) == 1 else key)
+        
+        if parts:
+            return '<' + '-'.join(parts) + '>'
+        return ''
     
     def create_config_section(self, parent, icon, title, description):
         """Crear una sección de configuración con título e icono"""
@@ -5188,6 +6453,12 @@ class AvalonGameManager:
         
         return card_frame
     
+    def reset_keybinds_to_default(self, temp_keybinds):
+        """Restablecer atajos de teclado a los valores predeterminados"""
+        for key_id, default_key in self.default_keybinds.items():
+            if key_id in temp_keybinds:
+                temp_keybinds[key_id].set(default_key)
+    
     def apply_config_changes(self, config_window, language_combo=None, theme_combo=None, 
                            lang_display_values=None, theme_display_values=None,
                            title_label=None, subtitle_label=None, save_btn=None, cancel_btn=None):
@@ -5226,6 +6497,21 @@ class AvalonGameManager:
                     startup_message = self.get_text('startup_disabled')
             else:
                 startup_message = self.get_text('startup_error')
+        
+        # Manejar cambios en atajos de teclado
+        if hasattr(self, 'temp_keybinds'):
+            try:
+                for key_id, var in self.temp_keybinds.items():
+                    new_keybind = var.get().strip()
+                    current_keybind = self.keybinds.get(key_id, '')
+                    if new_keybind and new_keybind != current_keybind:
+                        self.keybinds[key_id] = new_keybind
+                        changes_made = True
+                
+                if changes_made:
+                    self.setup_keyboard_shortcuts()
+            except Exception as e:
+                print(f"Error updating keybinds: {e}")
         
         if changes_made:
             self.save_config()
@@ -5483,6 +6769,36 @@ class AvalonGameManager:
             insert_color = '#ffffff'
             select_bg = '#34d399'
             select_fg = '#ffffff'
+        elif self.current_theme == 'cyberpunk':
+            entry_bg = '#000000'  # Fondo negro para cyberpunk
+            entry_fg = '#ffffff'  # Texto blanco
+            insert_color = '#ff00ff'  # Cursor magenta para el tema cyberpunk
+            select_bg = '#ff00ff'
+            select_fg = '#000000'
+        elif self.current_theme == 'gaming_rgb':
+            entry_bg = '#0d1117'  # Fondo muy oscuro para gaming rgb
+            entry_fg = '#ffffff'  # Texto blanco
+            insert_color = '#ff6b35'  # Cursor naranja acorde al tema
+            select_bg = '#ff6b35'
+            select_fg = '#ffffff'
+        elif self.current_theme == 'retro_arcade':
+            entry_bg = '#1a0033'  # Fondo muy oscuro para retro arcade
+            entry_fg = '#ffffff'  # Texto blanco
+            insert_color = '#ffff00'  # Cursor amarillo acorde al tema
+            select_bg = '#ffff00'
+            select_fg = '#1a0033'
+        elif self.current_theme == 'midnight_gaming':
+            entry_bg = '#000000'  # Fondo negro para midnight gaming
+            entry_fg = '#ffffff'  # Texto blanco
+            insert_color = '#00d4ff'  # Cursor cyan acorde al tema
+            select_bg = '#00d4ff'
+            select_fg = '#000000'
+        elif self.current_theme == 'esports':
+            entry_bg = '#0f1419'  # Fondo muy oscuro para esports
+            entry_fg = '#ffffff'  # Texto blanco
+            insert_color = '#c9aa71'  # Cursor dorado acorde al tema
+            select_bg = '#c9aa71'
+            select_fg = '#0f1419'
         else:
             # Fallback para cualquier tema nuevo
             entry_bg = '#ffffff'
@@ -5577,6 +6893,36 @@ class AvalonGameManager:
                 insert_color = '#ffffff'
                 select_bg = '#34d399'
                 select_fg = '#ffffff'
+            elif self.current_theme == 'cyberpunk':
+                entry_bg = '#000000'
+                entry_fg = '#ffffff'
+                insert_color = '#ff00ff'
+                select_bg = '#ff00ff'
+                select_fg = '#000000'
+            elif self.current_theme == 'gaming_rgb':
+                entry_bg = '#0d1117'
+                entry_fg = '#ffffff'
+                insert_color = '#ff6b35'
+                select_bg = '#ff6b35'
+                select_fg = '#ffffff'
+            elif self.current_theme == 'retro_arcade':
+                entry_bg = '#1a0033'
+                entry_fg = '#ffffff'
+                insert_color = '#ffff00'
+                select_bg = '#ffff00'
+                select_fg = '#1a0033'
+            elif self.current_theme == 'midnight_gaming':
+                entry_bg = '#000000'
+                entry_fg = '#ffffff'
+                insert_color = '#00d4ff'
+                select_bg = '#00d4ff'
+                select_fg = '#000000'
+            elif self.current_theme == 'esports':
+                entry_bg = '#0f1419'
+                entry_fg = '#ffffff'
+                insert_color = '#c9aa71'
+                select_bg = '#c9aa71'
+                select_fg = '#0f1419'
             else:
                 # Fallback para cualquier tema nuevo
                 entry_bg = '#ffffff'
@@ -5869,7 +7215,18 @@ class AvalonGameManager:
     
     def _on_mousewheel(self, event):
         """Handle mousewheel scrolling"""
-        self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+        # Solo permitir scroll si el contenido es más grande que el canvas
+        scrollregion = self.canvas.cget('scrollregion')
+        if scrollregion:
+            try:
+                _, _, _, content_height = map(float, scrollregion.split())
+                canvas_height = self.canvas.winfo_height()
+                
+                # Solo permitir scroll si el contenido es más alto que el canvas
+                if content_height > canvas_height:
+                    self.canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+            except (ValueError, AttributeError):
+                pass
     
     def setup_hover_effects(self, card_frame, name_label):
         """Configurar efectos hover para las cartas de juego"""
@@ -5905,83 +7262,57 @@ class AvalonGameManager:
         
         bind_to_children(card_frame)
     
-    def setup_hover_effects_enhanced(self, card_frame, name_label, header_frame, buttons_frame):
+    def setup_hover_effects_enhanced(self, card_frame, name_label, header_frame, buttons_frame, favorite_star=None):
         """Configurar efectos hover sutiles y profesionales para las tarjetas"""
-        # Colores hover más sutiles y elegantes
         if self.current_theme == 'light':
-            hover_border_color = '#e3e6ea'
+            hover_bg_color = '#f8f9fa'
             name_hover_color = self.colors['accent']
         else:
-            hover_border_color = '#4a5058'
-            name_hover_color = '#7dd3fc'  # Azul claro sutil
+            hover_bg_color = '#3d4249'
+            name_hover_color = '#7dd3fc'
         
-        # Estado original
         original_bg = self.colors['bg_light']
         original_name_color = self.colors['text_primary']
         
         def on_enter(event):
             """Efecto hover sutil y profesional"""
-            # Solo cambiar el borde de la tarjeta y el color del nombre
-            card_frame.configure(style='GameHover.TFrame')
-            
-            # Cambiar color del nombre del juego para indicar que es clickeable
-            name_label.configure(fg=name_hover_color)
-            
-            # Efecto sutil en la sombra (más discreto)
-            try:
-                parent = card_frame.master
-                if hasattr(parent, 'master'):
-                    shadow_frame = None
-                    for child in parent.winfo_children():
-                        if isinstance(child, tk.Frame) and child != card_frame:
-                            shadow_frame = child
-                            break
-                    if shadow_frame:
-                        # Solo cambiar el color, mantener altura
-                        shadow_frame.configure(bg=hover_border_color)
-            except:
-                pass
+            card_frame.configure(bg=hover_bg_color)
+            header_frame.configure(bg=hover_bg_color)
+            name_label.configure(fg=name_hover_color, bg=hover_bg_color)
+            if favorite_star:
+                favorite_star.configure(bg=hover_bg_color)
+            if buttons_frame:
+                buttons_frame.configure(bg=hover_bg_color)
             
         def on_leave(event):
             """Restaurar estado original"""
-            # Restaurar borde original
-            card_frame.configure(style='Game.TFrame')
-            
-            # Restaurar color original del nombre
-            name_label.configure(fg=original_name_color)
-            
-            # Restaurar sombra original
-            try:
-                parent = card_frame.master
-                if hasattr(parent, 'master'):
-                    shadow_frame = None
-                    for child in parent.winfo_children():
-                        if isinstance(child, tk.Frame) and child != card_frame:
-                            shadow_frame = child
-                            break
-                    if shadow_frame:
-                        shadow_frame.configure(bg=self.card_shadow_color)
-            except:
-                pass
+            card_frame.configure(bg=original_bg)
+            header_frame.configure(bg=original_bg)
+            name_label.configure(fg=original_name_color, bg=original_bg)
+            if favorite_star:
+                favorite_star.configure(bg=original_bg)
+            if buttons_frame:
+                buttons_frame.configure(bg=original_bg)
         
-        # Aplicar eventos hover solo a elementos clickeables
         name_label.bind('<Enter>', on_enter)
         name_label.bind('<Leave>', on_leave)
+        if favorite_star:
+            favorite_star.bind('<Enter>', on_enter)
+            favorite_star.bind('<Leave>', on_leave)
         
-        # También aplicar a la imagen si existe
-        def bind_to_image_only(widget):
-            """Aplicar efectos hover solo a la imagen del juego"""
+        def bind_to_interactive_elements(widget):
+            """Aplicar efectos hover a elementos interactivos"""
             try:
                 for child in widget.winfo_children():
-                    if isinstance(child, tk.Label) and hasattr(child, 'image'):
+                    if isinstance(child, tk.Label) and hasattr(child, 'image') and child.image:
                         child.bind('<Enter>', on_enter)
                         child.bind('<Leave>', on_leave)
                     elif hasattr(child, 'winfo_children'):
-                        bind_to_image_only(child)
+                        bind_to_interactive_elements(child)
             except:
                 pass
                 
-        bind_to_image_only(card_frame)
+        bind_to_interactive_elements(card_frame)
     
     def show_add_game_dialog(self):
         """Mostrar diálogo para añadir juego"""
@@ -6005,6 +7336,7 @@ class AvalonGameManager:
         self.game_image_path = tk.StringVar()
         self.map_type_var = tk.StringVar(value="image")
         self.map_content_var = tk.StringVar()
+        self.game_description_var = tk.StringVar()
         
         # Crear formulario
         self.create_add_game_form(dialog)
@@ -6032,6 +7364,17 @@ class AvalonGameManager:
                              insertbackground=self.colors['text'])
         name_entry.pack(fill=tk.X, pady=(0, 15), ipady=8)
         
+        # Descripción del juego
+        description_label = ttk.Label(form_frame, text=self.get_text('game_description'),
+                                     style='Dark.TLabel')
+        description_label.pack(anchor=tk.W, pady=(0, 5))
+        
+        description_entry = tk.Entry(form_frame, textvariable=self.game_description_var,
+                                    bg=self.colors['bg_light'], fg=self.colors['text'],
+                                    font=('Segoe UI', 10), relief='flat',
+                                    insertbackground=self.colors['text'])
+        description_entry.pack(fill=tk.X, pady=(0, 15), ipady=8)
+        
         # Imagen del juego
         image_label = ttk.Label(form_frame, text=self.get_text('game_image'),
                                style='Dark.TLabel')
@@ -6058,8 +7401,18 @@ class AvalonGameManager:
         map_type_frame = ttk.Frame(form_frame, style='Dark.TFrame')
         map_type_frame.pack(fill=tk.X, pady=(0, 15))
         
+        def toggle_browse_button():
+            """Mostrar/ocultar botón examinar y controlar estado de entrada según tipo de mapa"""
+            if self.map_type_var.get() == "image":
+                self.add_game_browse_button.pack(side=tk.RIGHT, padx=(10, 0))
+                map_content_entry.config(state='readonly', disabledbackground=self.colors['bg_light'], disabledforeground=self.colors['text'])
+            else:
+                self.add_game_browse_button.pack_forget()
+                map_content_entry.config(state='normal', bg=self.colors['bg_light'], fg=self.colors['text'])
+        
         image_radio = tk.Radiobutton(map_type_frame, text=self.get_text('map_type_image'),
                                     variable=self.map_type_var, value="image",
+                                    command=toggle_browse_button,
                                     bg=self.colors['bg_dark'], fg=self.colors['text'],
                                     selectcolor=self.colors['bg_light'],
                                     activebackground=self.colors['bg_dark'])
@@ -6067,6 +7420,7 @@ class AvalonGameManager:
         
         iframe_radio = tk.Radiobutton(map_type_frame, text=self.get_text('map_type_web'),
                                      variable=self.map_type_var, value="iframe",
+                                     command=toggle_browse_button,
                                      bg=self.colors['bg_dark'], fg=self.colors['text'],
                                      selectcolor=self.colors['bg_light'],
                                      activebackground=self.colors['bg_dark'])
@@ -6086,9 +7440,9 @@ class AvalonGameManager:
                                     insertbackground=self.colors['text'])
         map_content_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=8)
         
-        browse_map_button = ttk.Button(map_content_frame, text=self.get_text('browse_map'),
+        self.add_game_browse_button = ttk.Button(map_content_frame, text=self.get_text('browse_map'),
                                       command=self.browse_map_content)
-        browse_map_button.pack(side=tk.RIGHT, padx=(10, 0))
+        self.add_game_browse_button.pack(side=tk.RIGHT, padx=(10, 0))
         
         # Botones
         button_frame = ttk.Frame(form_frame, style='Dark.TFrame')
@@ -6102,6 +7456,12 @@ class AvalonGameManager:
                                 style='Accent.TButton',
                                 command=lambda: self.save_game(parent))
         save_button.pack(side=tk.RIGHT)
+        
+        # Bind Enter para guardar
+        parent.bind('<Return>', lambda event: self.save_game(parent))
+        
+        # Enfocar automáticamente el campo de nombre al abrir
+        name_entry.after(100, name_entry.focus_set)
     
     def browse_image(self):
         """Explorar imagen para el juego"""
@@ -6459,7 +7819,11 @@ class AvalonGameManager:
             'image_path': local_image_path,
             'map_type': map_type,
             'map_content': local_map_content,
-            'favorite': False  # Los juegos nuevos no son favoritos por defecto
+            'favorite': False,
+            'tasks': [],
+            'description': self.game_description_var.get().strip() if hasattr(self, 'game_description_var') else '',
+            'date_added': datetime.now().isoformat(),
+            'total_play_time': 0
         }
         
         # Añadir a la lista
@@ -6478,6 +7842,9 @@ class AvalonGameManager:
     
     def refresh_games_display(self):
         """Actualizar la visualización de juegos"""
+        # Limpiar referencias a widgets destruidos
+        self.game_card_widgets = {}
+        
         # Actualizar contadores en botones de filtro
         self.update_filter_button_counters()
         # Limpiar frame scrollable
@@ -6575,41 +7942,41 @@ class AvalonGameManager:
         # Sin búsqueda: Favoritos primero, luego el resto
         return favorites + non_favorites
     
+    def create_rounded_image(self, image, size, radius=15):
+        """Crear imagen con bordes redondeados"""
+        image = image.resize(size, Image.Resampling.LANCZOS)
+        
+        mask = Image.new('L', size, 0)
+        draw = ImageDraw.Draw(mask)
+        draw.rounded_rectangle([(0, 0), size], radius=radius, fill=255)
+        
+        image.putalpha(mask)
+        return image
+
     def create_game_card(self, parent, game, row, col):
         """Crear tarjeta de juego con diseño profesional y moderno"""
-        # Frame principal con efecto de elevación
         main_container = tk.Frame(parent, bg=self.colors['bg_dark'])
-        main_container.grid(row=row, column=col, padx=15, pady=15, sticky="nsew")
+        main_container.grid(row=row, column=col, padx=12, pady=12, sticky="nsew")
         
-        # Frame de sombra para efecto de profundidad
-        shadow_frame = tk.Frame(main_container, 
-                               bg=self.card_shadow_color,
-                               height=2)
-        shadow_frame.pack(side='bottom', fill='x')
-        
-        # Frame principal de la tarjeta con mejor diseño
-        card_frame = ttk.Frame(main_container, style='Game.TFrame')
+        card_frame = tk.Frame(main_container, bg=self.colors['bg_light'], highlightthickness=0)
         card_frame.pack(fill='both', expand=True)
         
-        # Header de la tarjeta con título y favorito
-        header_frame = tk.Frame(card_frame, bg=self.colors['bg_light'], height=45)
+        header_frame = tk.Frame(card_frame, bg=self.colors['bg_light'], height=50)
         header_frame.pack(fill='x', padx=0, pady=0)
         header_frame.pack_propagate(False)
         
-        # Nombre del juego con mejor tipografía
         name_label = tk.Label(header_frame, 
                              text=game['name'][:25] + "..." if len(game['name']) > 25 else game['name'],
                              bg=self.colors['bg_light'],
                              fg=self.colors['text_primary'],
-                             font=('Segoe UI', 11, 'bold'),
+                             font=('Segoe UI', 12, 'bold'),
                              cursor='hand2',
                              anchor='w')
-        name_label.pack(side='left', fill='both', expand=True, padx=(15, 5), pady=10)
-        name_label.bind("<Button-1>", lambda e, g=game: self.open_game_map(g))
+        name_label.pack(side='left', fill='both', expand=True, padx=(16, 8), pady=12)
+        name_label.bind("<Button-1>", lambda e, g=game: self.show_game_presentation(g))
         
-        # Estrella de favoritos modernizada
         is_favorite = game.get('favorite', False)
-        star_color = '#FFD700' if is_favorite else '#B0B0B0'
+        star_color = '#FFD700' if is_favorite else '#A0A0A0'
         star_text = '⭐' if is_favorite else '☆'
         
         favorite_star = tk.Label(header_frame,
@@ -6619,49 +7986,47 @@ class AvalonGameManager:
                                bg=self.colors['bg_light'],
                                cursor='hand2',
                                width=3)
-        favorite_star.pack(side='right', padx=(5, 15), pady=10)
+        favorite_star.pack(side='right', padx=(8, 16), pady=12)
         
-        # Efectos hover mejorados para la estrella
+        if game['name'] not in self.game_card_widgets:
+            self.game_card_widgets[game['name']] = {}
+        self.game_card_widgets[game['name']]['favorite_star'] = favorite_star
+        
         def on_star_enter(event):
             if game.get('favorite', False):
-                favorite_star.config(fg='#FF6B35', text='⭐')  # Naranja para quitar
+                favorite_star.config(fg='#FF8C00')
             else:
-                favorite_star.config(fg='#FFD700', text='⭐')  # Dorado para agregar
+                favorite_star.config(fg='#FFD700')
         
         def on_star_leave(event):
             current_favorite = game.get('favorite', False)
-            star_color = '#FFD700' if current_favorite else '#B0B0B0'
-            star_text = '⭐' if current_favorite else '☆'
-            favorite_star.config(fg=star_color, text=star_text)
+            star_color = '#FFD700' if current_favorite else '#A0A0A0'
+            favorite_star.config(fg=star_color)
         
         favorite_star.bind("<Enter>", on_star_enter)
         favorite_star.bind("<Leave>", on_star_leave)
-        favorite_star.bind("<Button-1>", lambda e, g=game: self.toggle_favorite(g))
+        favorite_star.bind("<Button-1>", lambda e, g=game, star=favorite_star: self.toggle_favorite(g, star))
         
-        # Contenedor de imagen con mejor diseño
         image_container = tk.Frame(card_frame, bg=self.colors['bg_light'])
-        image_container.pack(pady=(0, 15), padx=15)
+        image_container.pack(pady=14, padx=16)
         
         try:
-            # Cargar y redimensionar imagen con bordes redondeados simulados
             image = Image.open(game['image_path'])
-            image = image.resize((240, 270), Image.Resampling.LANCZOS)
-            photo = ImageTk.PhotoImage(image)
+            rounded_image = self.create_rounded_image(image, (238, 268), radius=12)
+            photo = ImageTk.PhotoImage(rounded_image)
             
-            # Label de imagen con mejor presentación
             image_label = tk.Label(image_container, 
                                   image=photo, 
                                   bg=self.colors['bg_light'],
                                   cursor='hand2',
-                                  relief='solid',
-                                  bd=1)
+                                  bd=0,
+                                  highlightthickness=0)
             image_label.image = photo
             image_label.pack()
-            image_label.bind("<Button-1>", lambda e, g=game: self.open_game_map(g))
+            image_label.bind("<Button-1>", lambda e, g=game: self.show_game_presentation(g))
             
         except Exception as e:
-            # Imagen por defecto con mejor diseño
-            default_photo = self.create_default_image(240, 270, 
+            default_photo = self.create_default_image(238, 268, 
                                                     game['name'][:15] + "..." if len(game['name']) > 15 else game['name'])
             
             if default_photo:
@@ -6669,27 +8034,25 @@ class AvalonGameManager:
                                             image=default_photo,
                                             bg=self.colors['bg_light'],
                                             cursor='hand2',
-                                            relief='solid',
-                                            bd=1)
+                                            bd=0,
+                                            highlightthickness=0)
                 placeholder_label.image = default_photo
             else:
                 placeholder_label = tk.Label(image_container, 
                                             text="🎮\n" + self.get_text('no_image'),
-                                            bg=self.colors['bg_light'],
+                                            bg='#f5f5f5' if self.current_theme == 'light' else '#3a3f47',
                                             fg=self.colors['text_muted'],
-                                            font=('Segoe UI', 20),
+                                            font=('Segoe UI', 18),
                                             width=30, height=17,
-                                            relief='solid',
-                                            bd=1)
+                                            bd=0,
+                                            highlightthickness=0)
             
             placeholder_label.pack()
-            placeholder_label.bind("<Button-1>", lambda e, g=game: self.open_game_map(g))
+            placeholder_label.bind("<Button-1>", lambda e, g=game: self.show_game_presentation(g))
         
-        # Frame para botones con mejor diseño
         buttons_frame = tk.Frame(card_frame, bg=self.colors['bg_light'])
-        buttons_frame.pack(fill='x', padx=15, pady=(0, 15))
+        buttons_frame.pack(fill='x', padx=12, pady=12)
         
-        # Botón de editar mejorado con ícono
         edit_button = tk.Button(buttons_frame, 
                                text="✏️ " + self.get_text('edit_game'), 
                                bg=self.colors['warning'], 
@@ -6697,11 +8060,12 @@ class AvalonGameManager:
                                font=('Segoe UI', 9, 'bold'),
                                relief='flat',
                                cursor='hand2',
-                               pady=8,
+                               pady=9,
+                               activebackground='#F57C00',
+                               activeforeground='white',
                                command=lambda g=game: self.edit_game(g))
-        edit_button.pack(side='left', fill='x', expand=True, padx=(0, 5))
+        edit_button.pack(side='left', fill='x', expand=True, padx=(0, 6))
         
-        # Botón de eliminar mejorado con ícono
         delete_button = tk.Button(buttons_frame, 
                                  text="🗑️ " + self.get_text('delete_game'), 
                                  bg=self.colors['danger'], 
@@ -6709,19 +8073,20 @@ class AvalonGameManager:
                                  font=('Segoe UI', 9, 'bold'),
                                  relief='flat',
                                  cursor='hand2',
-                                 pady=8,
+                                 pady=9,
+                                 activebackground='#E53935',
+                                 activeforeground='white',
                                  command=lambda g=game: self.delete_game(g))
-        delete_button.pack(side='right', fill='x', expand=True, padx=(5, 0))
+        delete_button.pack(side='right', fill='x', expand=True, padx=(6, 0))
         
-        # Efectos hover para botones
         def on_edit_enter(event):
-            edit_button.config(bg=self.colors['accent_hover'] if hasattr(self.colors, 'accent_hover') else self.colors['accent'])
+            edit_button.config(bg='#F57C00')
         
         def on_edit_leave(event):
             edit_button.config(bg=self.colors['warning'])
             
         def on_delete_enter(event):
-            delete_button.config(bg='#ff6666')
+            delete_button.config(bg='#E53935')
         
         def on_delete_leave(event):
             delete_button.config(bg=self.colors['danger'])
@@ -6731,10 +8096,9 @@ class AvalonGameManager:
         delete_button.bind("<Enter>", on_delete_enter)
         delete_button.bind("<Leave>", on_delete_leave)
         
-        # Agregar efectos hover mejorados para toda la tarjeta
-        self.setup_hover_effects_enhanced(card_frame, name_label, header_frame, buttons_frame)
+        self.setup_hover_effects_enhanced(card_frame, name_label, header_frame, buttons_frame, favorite_star)
     
-    def toggle_favorite(self, game):
+    def toggle_favorite(self, game, favorite_star=None):
         """Alternar estado de favorito de un juego con efectos visuales"""
         # Cambiar estado de favorito
         current_favorite = game.get('favorite', False)
@@ -6743,20 +8107,37 @@ class AvalonGameManager:
         # Guardar cambios
         self.save_games()
         
+        # Actualizar la estrella visualmente
+        star_color = '#FFD700' if game['favorite'] else '#A0A0A0'
+        star_text = '⭐' if game['favorite'] else '☆'
+        
+        # Actualizar el widget que se pasó (puede ser de tarjeta o presentación)
+        if favorite_star:
+            favorite_star.config(fg=star_color, text=star_text)
+        
+        # Sincronizar con la tarjeta del juego si existe en el diccionario
+        if game['name'] in self.game_card_widgets:
+            card_star = self.game_card_widgets[game['name']].get('favorite_star')
+            if card_star:
+                card_star.config(fg=star_color, text=star_text)
+        
         # Mostrar mensaje de feedback temporal
         action = self.get_text('add_to_favorites') if game['favorite'] else self.get_text('remove_from_favorites')
         self.show_temporary_message(f"{action}: {game['name']}", game['favorite'])
         
-        # Actualizar visualización con animación sutil
-        self.refresh_games_display()
+        # Actualizar visualización solo si estamos filtrando por favoritos
+        # De lo contrario, el juego seguirá visible en la lista
+        if hasattr(self, 'favorites_filter') and self.favorites_filter == "favorites":
+            self.refresh_games_display()
         
         # Actualizar contadores en botones de filtro si existen
         self.update_filter_button_counters()
     
     def show_temporary_message(self, message, is_favorite):
         """Mostrar mensaje temporal de feedback al usuario"""
-        # Crear ventana temporal
+        # Crear ventana temporal (invisible inicialmente)
         temp_window = tk.Toplevel(self.root)
+        temp_window.withdraw()
         temp_window.title("")
         temp_window.geometry("300x80")
         temp_window.resizable(False, False)
@@ -6767,15 +8148,6 @@ class AvalonGameManager:
         
         temp_window.configure(bg=bg_color)
         
-        # Centrar la ventana
-        temp_window.update_idletasks()
-        x = (temp_window.winfo_screenwidth() // 2) - (300 // 2)
-        y = (temp_window.winfo_screenheight() // 2) - (80 // 2)
-        temp_window.geometry(f"300x80+{x}+{y}")
-        
-        # Quitar decoraciones de ventana
-        temp_window.overrideredirect(True)
-        
         # Mensaje
         label = tk.Label(temp_window, 
                         text=message,
@@ -6784,6 +8156,18 @@ class AvalonGameManager:
                         font=('Segoe UI', 10, 'bold'),
                         wraplength=280)
         label.pack(expand=True)
+        
+        # Quitar decoraciones de ventana
+        temp_window.overrideredirect(True)
+        
+        # Centrar la ventana
+        temp_window.update_idletasks()
+        x = (temp_window.winfo_screenwidth() // 2) - (300 // 2)
+        y = (temp_window.winfo_screenheight() // 2) - (80 // 2)
+        temp_window.geometry(f"300x80+{x}+{y}")
+        
+        # Mostrar la ventana después de estar lista
+        temp_window.deiconify()
         
         # Auto-cerrar después de 2 segundos
         temp_window.after(2000, temp_window.destroy)
@@ -6809,6 +8193,604 @@ class AvalonGameManager:
             # Los botones fueron destruidos, no hacer nada
             pass
     
+    def show_game_presentation(self, game):
+        """Mostrar ventana de presentación del juego con opciones de abrir mapa o guía"""
+        presentation_window = tk.Toplevel(self.root)
+        presentation_window.withdraw()
+        presentation_window.title(game['name'])
+        presentation_window.geometry("1150x750")
+        presentation_window.resizable(False, False)
+        presentation_window.grab_set()
+        
+        self.apply_window_icon(presentation_window)
+        presentation_window.configure(bg=self.colors['bg_dark'])
+        
+        style = ttk.Style()
+        style.configure(
+            "Presentation.Horizontal.TProgressbar",
+            background=self.colors['accent'],
+            troughcolor=self.colors['bg_medium'],
+            borderwidth=0,
+            lightcolor=self.colors['accent'],
+            darkcolor=self.colors['accent'],
+            relief='flat'
+        )
+        
+        presentation_window.update_idletasks()
+        x = (presentation_window.winfo_screenwidth() // 2) - (1150 // 2)
+        y = (presentation_window.winfo_screenheight() // 2) - (750 // 2)
+        presentation_window.geometry(f"1150x750+{x}+{y}")
+        
+        main_frame = tk.Frame(presentation_window, bg=self.colors['bg_dark'])
+        main_frame.pack(fill='both', expand=True, padx=30, pady=30)
+        
+        content_frame = tk.Frame(main_frame, bg=self.colors['bg_dark'])
+        content_frame.pack(fill='both', expand=True, pady=(0, 30))
+        
+        left_panel = tk.Frame(content_frame, bg=self.colors['bg_dark'])
+        left_panel.pack(side='left', fill='both', expand=False, padx=(0, 30))
+        
+        image_label = None
+        last_height = [0]
+        
+        def update_image_size(event=None):
+            """Actualizar tamaño de imagen según el tamaño de la ventana"""
+            if image_label is None or not hasattr(image_label, 'winfo_exists') or not image_label.winfo_exists():
+                return
+            
+            window_height = presentation_window.winfo_height()
+            if window_height < 100:
+                return
+            
+            if abs(window_height - last_height[0]) < 30:
+                return
+            
+            last_height[0] = window_height
+            max_img_height = int((window_height - 120) * 0.9)
+            aspect_ratio = 220 / 290
+            img_height = min(290, max(150, max_img_height))
+            img_width = int(img_height * aspect_ratio)
+            
+            try:
+                original_image = Image.open(game['image_path'])
+                resized_image = original_image.resize((img_width, img_height), Image.Resampling.LANCZOS)
+                new_photo = ImageTk.PhotoImage(resized_image)
+                image_label.config(image=new_photo)
+                image_label.image = new_photo
+            except Exception:
+                pass
+        
+        try:
+            def create_rounded_image_with_border(image_path, width, height, border_size=3, corner_radius=15):
+                """Crear imagen con esquinas redondeadas y marco"""
+                image = Image.open(image_path)
+                image = image.resize((width, height), Image.Resampling.LANCZOS)
+                
+                border_color = self.colors.get('accent', '#4a7fd7')
+                border_rgb = tuple(int(border_color[i:i+2], 16) for i in (1, 3, 5))
+                
+                bordered_img = Image.new('RGB', 
+                    (width + border_size * 2, height + border_size * 2), 
+                    border_rgb)
+                bordered_img.paste(image, (border_size, border_size))
+                
+                mask = Image.new('L', bordered_img.size, 0)
+                draw = ImageDraw.Draw(mask)
+                draw.rounded_rectangle(
+                    [(0, 0), bordered_img.size],
+                    radius=corner_radius,
+                    fill=255
+                )
+                
+                rounded_img = Image.new('RGBA', bordered_img.size)
+                rounded_img.paste(bordered_img, (0, 0))
+                rounded_img.putalpha(mask)
+                
+                return rounded_img
+            
+            rounded_image = create_rounded_image_with_border(
+                game['image_path'], 220, 290, border_size=3, corner_radius=15
+            )
+            photo = ImageTk.PhotoImage(rounded_image)
+            
+            image_frame = tk.Frame(left_panel, bg=self.colors['bg_dark'])
+            image_frame.pack(pady=(0, 20))
+            
+            image_label = tk.Label(
+                image_frame,
+                image=photo,
+                bg=self.colors['bg_dark'],
+                highlightthickness=3,
+                highlightcolor=self.colors['accent'],
+                highlightbackground=self.colors['accent']
+            )
+            image_label.image = photo
+            image_label.pack()
+            
+            if game.get('description', '').strip():
+                description_label = tk.Label(
+                    left_panel,
+                    text=game.get('description', ''),
+                    font=('Segoe UI', 10),
+                    fg=self.colors['text_primary'],
+                    bg=self.colors['bg_dark'],
+                    wraplength=220,
+                    justify='left'
+                )
+                description_label.pack(pady=(15, 0))
+            
+            presentation_window.bind('<Configure>', update_image_size)
+            
+        except Exception as e:
+            placeholder_label = tk.Label(
+                left_panel,
+                text="🎮",
+                font=('Segoe UI', 60),
+                bg=self.colors['bg_dark'],
+                fg=self.colors['text_muted']
+            )
+            placeholder_label.pack(pady=(0, 20))
+        
+        right_panel = tk.Frame(content_frame, bg=self.colors['bg_dark'])
+        right_panel.pack(side='left', fill='both', expand=True)
+        
+        title_frame = tk.Frame(right_panel, bg=self.colors['bg_dark'])
+        title_frame.pack(anchor='center', pady=20)
+        
+        title_label = tk.Label(
+            title_frame,
+            text=game['name'],
+            font=('Segoe UI', 32, 'bold'),
+            fg=self.colors['text_primary'],
+            bg=self.colors['bg_dark'],
+            wraplength=600,
+            justify='center'
+        )
+        title_label.pack(side='left', padx=(0, 15))
+        
+        is_favorite = game.get('favorite', False)
+        star_color = '#FFD700' if is_favorite else '#B0B0B0'
+        star_text = '⭐' if is_favorite else '☆'
+        
+        favorite_star = tk.Label(title_frame,
+                               text=star_text,
+                               font=('Segoe UI', 28, 'bold'),
+                               fg=star_color,
+                               bg=self.colors['bg_dark'],
+                               cursor='hand2')
+        favorite_star.pack(side='left')
+        
+        def on_star_enter(event):
+            if game.get('favorite', False):
+                favorite_star.config(fg='#FF6B35', text='⭐')
+            else:
+                favorite_star.config(fg='#FFD700', text='⭐')
+        
+        def on_star_leave(event):
+            current_favorite = game.get('favorite', False)
+            star_color = '#FFD700' if current_favorite else '#B0B0B0'
+            star_text = '⭐' if current_favorite else '☆'
+            favorite_star.config(fg=star_color, text=star_text)
+        
+        favorite_star.bind("<Enter>", on_star_enter)
+        favorite_star.bind("<Leave>", on_star_leave)
+        favorite_star.bind("<Button-1>", lambda e, g=game, star=favorite_star: self.toggle_favorite(g, star))
+        
+        if 'date_added' in game:
+            try:
+                date_obj = datetime.fromisoformat(game['date_added'])
+                formatted_date = date_obj.strftime('%d/%m/%Y')
+                date_label = tk.Label(
+                    right_panel,
+                    text=f"{self.get_text('added_date')}: {formatted_date}",
+                    font=('Segoe UI', 10),
+                    fg=self.colors['text_primary'],
+                    bg=self.colors['bg_dark']
+                )
+                date_label.pack(anchor='center', pady=(0, 20))
+            except Exception:
+                pass
+        
+        def add_task():
+            add_task_window = tk.Toplevel(presentation_window)
+            add_task_window.title(self.get_text('new_objective'))
+            add_task_window.geometry("400x150")
+            add_task_window.configure(bg=self.colors['bg_dark'])
+            add_task_window.resizable(False, False)
+            
+            try:
+                icon_path = resource_path("logo.ico")
+                if os.path.exists(icon_path):
+                    add_task_window.iconbitmap(icon_path)
+            except:
+                pass
+            
+            add_task_window.update_idletasks()
+            x = (presentation_window.winfo_screenwidth() // 2) - 200
+            y = (presentation_window.winfo_screenheight() // 2) - 75
+            add_task_window.geometry(f"400x150+{x}+{y}")
+            
+            content_frame_task = tk.Frame(add_task_window, bg=self.colors['bg_dark'])
+            content_frame_task.pack(fill='both', expand=True, padx=20, pady=20)
+            
+            label = tk.Label(
+                content_frame_task,
+                text=self.get_text('write_objective'),
+                font=('Segoe UI', 10),
+                fg=self.colors['text_primary'],
+                bg=self.colors['bg_dark']
+            )
+            label.pack(anchor='w', pady=(0, 10))
+            
+            entry = tk.Entry(
+                content_frame_task,
+                font=('Segoe UI', 10),
+                bg=self.colors['bg_medium'],
+                fg=self.colors['text_primary'],
+                insertbackground=self.colors['accent'],
+                relief='flat',
+                bd=1
+            )
+            entry.pack(fill='x', pady=(0, 15))
+            entry.focus()
+            
+            buttons_frame_task = tk.Frame(content_frame_task, bg=self.colors['bg_dark'])
+            buttons_frame_task.pack(fill='x', pady=(10, 0))
+            
+            def save_task():
+                task_text = entry.get().strip()
+                if task_text:
+                    if 'tasks' not in game:
+                        game['tasks'] = []
+                    game['tasks'].append({'text': task_text, 'done': False})
+                    self.save_games()
+                    refresh_tasks_display()
+                    add_task_window.destroy()
+            
+            def on_cancel():
+                add_task_window.destroy()
+            
+            save_btn = tk.Button(
+                buttons_frame_task,
+                text=self.get_text('save'),
+                font=('Segoe UI', 10, 'bold'),
+                fg='white',
+                bg=self.colors['accent'],
+                relief='flat',
+                cursor='hand2',
+                bd=0,
+                command=save_task
+            )
+            save_btn.pack(side='right', padx=(5, 0))
+            
+            cancel_btn = tk.Button(
+                buttons_frame_task,
+                text=self.get_text('cancel'),
+                font=('Segoe UI', 10, 'bold'),
+                fg=self.colors['text_primary'],
+                bg=self.colors['bg_medium'],
+                relief='flat',
+                cursor='hand2',
+                bd=0,
+                command=on_cancel
+            )
+            cancel_btn.pack(side='right', padx=5)
+            
+            self._add_hover_effect(save_btn, self.colors['accent'], 
+                                 self.colors.get('accent_hover', '#5b7fde'))
+            self._add_hover_effect(cancel_btn, self.colors['bg_medium'], 
+                                 self.colors.get('bg_light', '#505050'))
+            
+            entry.bind('<Return>', lambda e: save_task())
+            entry.bind('<Escape>', lambda e: on_cancel())
+        
+        tasks_header_frame = tk.Frame(right_panel, bg=self.colors['bg_dark'])
+        tasks_header_frame.pack(fill='x', pady=(20, 12))
+        
+        tasks_label = tk.Label(
+            tasks_header_frame,
+            text="📋 " + self.get_text('objectives'),
+            font=('Segoe UI', 13, 'bold'),
+            fg=self.colors['accent'],
+            bg=self.colors['bg_dark']
+        )
+        tasks_label.pack(side='left', fill='both', expand=True, padx=(2, 5))
+        
+        add_task_button = tk.Button(
+            tasks_header_frame,
+            text="+ ",
+            font=('Segoe UI', 11, 'bold'),
+            fg='white',
+            bg=self.colors['accent'],
+            relief='flat',
+            cursor='hand2',
+            bd=0,
+            padx=8,
+            pady=0,
+            command=add_task
+        )
+        add_task_button.pack(side='right', padx=(5, 0))
+        
+        self._add_hover_effect(add_task_button, self.colors['accent'], 
+                             self.colors.get('accent_hover', '#5b7fde'))
+        
+        progress_frame = tk.Frame(right_panel, bg=self.colors['bg_dark'])
+        progress_frame.pack(fill='x', pady=(0, 12))
+        
+        progress_bar = ttk.Progressbar(
+            progress_frame,
+            orient='horizontal',
+            length=400,
+            mode='determinate',
+            value=0,
+            style="Presentation.Horizontal.TProgressbar"
+        )
+        progress_bar.pack(fill='x', padx=0)
+        
+        progress_label = tk.Label(
+            progress_frame,
+            text="0/0 (0%)",
+            font=('Segoe UI', 9),
+            fg=self.colors['text_muted'],
+            bg=self.colors['bg_dark']
+        )
+        progress_label.pack(anchor='e', padx=2, pady=(2, 0))
+        
+        tasks_frame = tk.Frame(right_panel, bg=self.colors['bg_medium'], highlightthickness=2, highlightbackground=self.colors.get('accent', '#4a7fd7'))
+        tasks_frame.pack(fill='both', expand=True, padx=0, pady=(0, 20))
+        
+        canvas = tk.Canvas(tasks_frame, bg=self.colors['bg_medium'], highlightthickness=0, cursor='arrow')
+        scrollbar = ttk.Scrollbar(tasks_frame, orient='vertical', command=canvas.yview)
+        scrollable_frame = tk.Frame(canvas, bg=self.colors['bg_medium'])
+        
+        def on_frame_configure(e):
+            canvas.configure(scrollregion=canvas.bbox('all'))
+            update_scrollbar_visibility()
+        
+        def on_canvas_configure(e):
+            canvas.itemconfig(canvas_window, width=e.width)
+            update_scrollbar_visibility()
+        
+        def update_scrollbar_visibility():
+            scrollbar.pack_forget()
+        
+        scrollable_frame.bind('<Configure>', on_frame_configure)
+        
+        canvas_window = canvas.create_window((0, 0), window=scrollable_frame, anchor='nw')
+        canvas.bind('<Configure>', on_canvas_configure)
+        canvas.configure(yscrollcommand=scrollbar.set)
+        
+        def _on_mousewheel(event):
+            try:
+                if canvas.bbox('all') is None:
+                    return "break"
+                
+                canvas_height = canvas.winfo_height()
+                scroll_region_height = canvas.bbox('all')[3] - canvas.bbox('all')[1]
+                
+                if scroll_region_height > canvas_height:
+                    canvas.yview_scroll(int(-1*(event.delta/120)), "units")
+                
+                return "break"
+            except:
+                return "break"
+        
+        def _bind_mousewheel_recursive(widget):
+            widget.bind('<MouseWheel>', _on_mousewheel)
+            for child in widget.winfo_children():
+                _bind_mousewheel_recursive(child)
+        
+        canvas.bind('<MouseWheel>', _on_mousewheel)
+        scrollable_frame.bind('<MouseWheel>', _on_mousewheel)
+        
+        canvas.pack(side='left', fill='both', expand=True)
+        
+        task_checkboxes = {}
+        
+        def update_progress_and_checkboxes():
+            total_tasks = len(game.get('tasks', []))
+            completed_tasks = sum(1 for task in game.get('tasks', []) if task.get('done', False))
+            progress_percentage = int((completed_tasks / total_tasks * 100)) if total_tasks > 0 else 0
+            progress_bar.config(value=progress_percentage)
+            progress_label.config(text=f"{completed_tasks}/{total_tasks} ({progress_percentage}%)")
+            
+            for idx, task in enumerate(game.get('tasks', [])):
+                if idx in task_checkboxes:
+                    checkbox, _ = task_checkboxes[idx]
+                    is_done = task.get('done', False)
+                    if is_done:
+                        checkbox.config(fg=self.colors.get('text_muted', '#999999'), font=('Segoe UI', 10, 'overstrike'))
+                    else:
+                        checkbox.config(fg=self.colors['text_primary'], font=('Segoe UI', 10))
+        
+        def refresh_tasks_display():
+            for widget in scrollable_frame.winfo_children():
+                widget.destroy()
+            task_checkboxes.clear()
+            
+            if not game.get('tasks', []):
+                no_tasks_container = tk.Frame(scrollable_frame, bg=self.colors['bg_medium'])
+                no_tasks_container.pack(pady=30, expand=True)
+                
+                no_tasks_icon = tk.Label(
+                    no_tasks_container,
+                    text="📭",
+                    font=('Segoe UI Emoji', 32),
+                    fg=self.colors.get('text_muted', '#666666'),
+                    bg=self.colors['bg_medium']
+                )
+                no_tasks_icon.pack(pady=(0, 10))
+                
+                no_tasks_label = tk.Label(
+                    no_tasks_container,
+                    text=self.get_text('no_objectives'),
+                    font=('Segoe UI', 11),
+                    fg=self.colors['text_muted'],
+                    bg=self.colors['bg_medium']
+                )
+                no_tasks_label.pack()
+            else:
+                for idx, task in enumerate(game.get('tasks', [])):
+                    task_item_frame = tk.Frame(scrollable_frame, bg=self.colors['bg_dark'], highlightthickness=2, highlightbackground=self.colors.get('border', '#505050'))
+                    task_item_frame.pack(fill='both', expand=True, padx=6, pady=5)
+                    
+                    checkbox_state = tk.BooleanVar(value=task.get('done', False))
+                    
+                    def toggle_task(task_idx=idx, state_var=checkbox_state):
+                        game['tasks'][task_idx]['done'] = state_var.get()
+                        self.save_games()
+                        update_progress_and_checkboxes()
+                    
+                    left_container = tk.Frame(task_item_frame, bg=self.colors['bg_dark'])
+                    left_container.pack(side='left', fill='both', expand=True, padx=8, pady=7)
+                    
+                    checkbox = tk.Checkbutton(
+                        left_container,
+                        text=task.get('text', ''),
+                        variable=checkbox_state,
+                        font=('Segoe UI', 10),
+                        fg=self.colors.get('text_muted', '#999999') if task.get('done') else self.colors['text_primary'],
+                        bg=self.colors['bg_dark'],
+                        selectcolor=self.colors['bg_dark'],
+                        activebackground=self.colors['bg_dark'],
+                        activeforeground=self.colors['accent'],
+                        command=toggle_task,
+                        relief='flat',
+                        bd=0
+                    )
+                    
+                    if task.get('done'):
+                        checkbox.config(fg=self.colors.get('text_muted', '#999999'), font=('Segoe UI', 10, 'overstrike'))
+                    
+                    checkbox.pack(anchor='w', fill='both', expand=True)
+                    
+                    task_checkboxes[idx] = (checkbox, task.get('text', ''))
+                    
+                    right_container = tk.Frame(task_item_frame, bg=self.colors['bg_dark'])
+                    right_container.pack(side='right', padx=5, pady=5)
+                    
+                    delete_btn = tk.Button(
+                        right_container,
+                        text="✕",
+                        font=('Segoe UI', 10, 'bold'),
+                        bg=self.colors['bg_dark'],
+                        fg=self.colors['danger'],
+                        relief='flat',
+                        bd=0,
+                        cursor='hand2',
+                        padx=4,
+                        pady=0,
+                        command=lambda t_idx=idx: delete_task(t_idx)
+                    )
+                    delete_btn.pack()
+                    
+                    self._add_hover_effect(delete_btn, self.colors['bg_dark'], self.colors.get('bg_light', '#505050'))
+            
+            total_tasks = len(game.get('tasks', []))
+            completed_tasks = sum(1 for task in game.get('tasks', []) if task.get('done', False))
+            progress_percentage = int((completed_tasks / total_tasks * 100)) if total_tasks > 0 else 0
+            
+            progress_bar.config(value=progress_percentage)
+            progress_label.config(text=f"{completed_tasks}/{total_tasks} ({progress_percentage}%)")
+            
+            _bind_mousewheel_recursive(scrollable_frame)
+        
+        def delete_task(task_idx):
+            if 'tasks' in game and task_idx < len(game['tasks']):
+                game['tasks'].pop(task_idx)
+                self.save_games()
+                refresh_tasks_display()
+        
+        refresh_tasks_display()
+        
+        buttons_frame = tk.Frame(main_frame, bg=self.colors['bg_dark'])
+        buttons_frame.pack(fill='x', side='bottom', pady=(20, 0))
+        
+        center_buttons = tk.Frame(buttons_frame, bg=self.colors['bg_dark'])
+        center_buttons.pack(expand=True)
+        
+        button_style = {
+            'font': ('Segoe UI', 13, 'bold'),
+            'fg': 'white',
+            'relief': 'flat',
+            'cursor': 'hand2',
+            'pady': 14,
+            'padx': 28,
+            'bd': 0
+        }
+        
+        open_map_button = tk.Button(
+            center_buttons,
+            text="🗺️  " + self.get_text('view_map'),
+            bg=self.colors['accent'],
+            **button_style,
+            command=lambda: self.on_presentation_map_click(presentation_window, game)
+        )
+        open_map_button.pack(side='left', padx=(0, 15))
+        
+        close_button = tk.Button(
+            center_buttons,
+            text="✕  " + self.get_text('close'),
+            bg=self.colors['danger'],
+            font=('Segoe UI', 12, 'bold'),
+            fg='white',
+            relief='flat',
+            cursor='hand2',
+            pady=14,
+            padx=26,
+            bd=0,
+            command=presentation_window.destroy
+        )
+        close_button.pack(side='left')
+        
+        self._add_hover_effect(open_map_button, self.colors['accent'], 
+                             self.colors.get('accent_hover', '#5b7fde'))
+        self._add_hover_effect(close_button, self.colors['danger'], 
+                             '#ff6666' if self.current_theme == 'slate' else '#ff5555')
+        
+        def on_presentation_mousewheel(event):
+            try:
+                widget_at_cursor = presentation_window.winfo_containing(event.x_root, event.y_root)
+                if widget_at_cursor is not None:
+                    for w in [canvas, scrollable_frame] + list(scrollable_frame.winfo_children()):
+                        if w == widget_at_cursor or w.winfo_containing(event.x_root, event.y_root) == w:
+                            return "break"
+                return "break"
+            except:
+                pass
+        
+        presentation_window.bind('<MouseWheel>', on_presentation_mousewheel)
+        
+        presentation_window.deiconify()
+    
+    def get_map_type_label(self, map_type):
+        """Obtener etiqueta legible para el tipo de mapa"""
+        map_types = {
+            'local': self.get_text('map_type_local') if hasattr(self, 'get_text') else 'Mapa Local',
+            'web': self.get_text('map_type_web') if hasattr(self, 'get_text') else 'Guía Web',
+            'image': self.get_text('map_type_image') if hasattr(self, 'get_text') else 'Mapa de Imagen'
+        }
+        return map_types.get(map_type, 'Tipo Desconocido')
+    
+    def _add_hover_effect(self, button, normal_color, hover_color):
+        """Agregar efecto hover a un botón"""
+        def on_enter(event):
+            button.config(bg=hover_color)
+        def on_leave(event):
+            button.config(bg=normal_color)
+        button.bind("<Enter>", on_enter)
+        button.bind("<Leave>", on_leave)
+    
+    def on_presentation_map_click(self, presentation_window, game):
+        """Manejar clic en botón de abrir mapa desde presentación"""
+        presentation_window.destroy()
+        self.open_game_map(game)
+    
+    def on_presentation_guide_click(self, presentation_window, game):
+        """Manejar clic en botón de abrir guía desde presentación"""
+        presentation_window.destroy()
+        self.open_game_map(game)
+
     def open_game_map(self, game):
         """Abrir ventana con el mapa del juego"""
         print(f"Abriendo mapa para {game['name']} - Tipo: {game['map_type']}")  # Debug
@@ -6838,7 +8820,7 @@ class AvalonGameManager:
             
             # Crear ventana webview directamente
             webview.create_window(
-                title=f"Mapa - {game['name']}",
+                title=f"{self.get_text('map_window_title')} - {game['name']}",
                 url=game['map_content'],
                 width=1000,
                 height=700,
@@ -6935,12 +8917,7 @@ class AvalonGameManager:
             # Configurar región de scroll
             canvas.configure(scrollregion=(0, 0, canvas_width, canvas_height))
             
-            # Layout optimizado para eliminar espacios
-            # Scrollbar horizontal abajo
-            scrollbar_h.pack(side="bottom", fill="x")
-            # Scrollbar vertical a la derecha
-            scrollbar_v.pack(side="right", fill="y")
-            # Canvas ocupa el resto del espacio
+            # No mostrar barras de scroll pero mantener funcionalidad
             canvas.pack(side="left", fill="both", expand=True)
             
             # Variables para manejar redimensionamiento
@@ -7456,6 +9433,7 @@ class AvalonGameManager:
         self.edit_game_image_path = tk.StringVar(value=game['image_path'])
         self.edit_map_type_var = tk.StringVar(value=game['map_type'])
         self.edit_map_content_var = tk.StringVar(value=game['map_content'])
+        self.edit_game_description_var = tk.StringVar(value=game.get('description', ''))
         self.edit_original_game = game
         
         # Configurar icono del diálogo de edición (segunda función)
@@ -7513,8 +9491,18 @@ class AvalonGameManager:
         map_type_frame = ttk.Frame(form_frame, style='Dark.TFrame')
         map_type_frame.pack(fill=tk.X, pady=(0, 15))
         
+        def toggle_edit_browse_button():
+            """Mostrar/ocultar botón examinar y controlar estado de entrada según tipo de mapa"""
+            if self.edit_map_type_var.get() == "image":
+                self.edit_game_browse_button.pack(side=tk.RIGHT, padx=(10, 0))
+                map_content_entry.config(state='readonly', disabledbackground=self.colors['bg_light'], disabledforeground=self.colors['text'])
+            else:
+                self.edit_game_browse_button.pack_forget()
+                map_content_entry.config(state='normal', bg=self.colors['bg_light'], fg=self.colors['text'])
+        
         image_radio = tk.Radiobutton(map_type_frame, text=self.get_text('map_type_image'),
                                     variable=self.edit_map_type_var, value="image",
+                                    command=toggle_edit_browse_button,
                                     bg=self.colors['bg_dark'], fg=self.colors['text'],
                                     selectcolor=self.colors['bg_light'],
                                     activebackground=self.colors['bg_dark'])
@@ -7522,6 +9510,7 @@ class AvalonGameManager:
         
         iframe_radio = tk.Radiobutton(map_type_frame, text=self.get_text('map_type_web'),
                                      variable=self.edit_map_type_var, value="iframe",
+                                     command=toggle_edit_browse_button,
                                      bg=self.colors['bg_dark'], fg=self.colors['text'],
                                      selectcolor=self.colors['bg_light'],
                                      activebackground=self.colors['bg_dark'])
@@ -7536,14 +9525,17 @@ class AvalonGameManager:
         map_content_frame.pack(fill=tk.X, pady=(0, 20))
         
         map_content_entry = tk.Entry(map_content_frame, textvariable=self.edit_map_content_var,
-                                    bg=self.colors['bg_light'], fg=self.colors['text'],
+                                    bg=self.colors['bg_dark'], fg=self.colors['text'],
                                     font=('Segoe UI', 10), relief='flat',
                                     insertbackground=self.colors['text'])
         map_content_entry.pack(side=tk.LEFT, fill=tk.X, expand=True, ipady=8)
         
-        browse_map_button = ttk.Button(map_content_frame, text=self.get_text('browse_map'),
+        self.edit_game_browse_button = ttk.Button(map_content_frame, text=self.get_text('browse_map'),
                                       command=self.browse_edit_map_content)
-        browse_map_button.pack(side=tk.RIGHT, padx=(10, 0))
+        self.edit_game_browse_button.pack(side=tk.RIGHT, padx=(10, 0))
+        
+        # Establecer estado inicial del botón basado en el tipo de mapa actual
+        toggle_edit_browse_button()
         
         # Botones
         button_frame = ttk.Frame(form_frame, style='Dark.TFrame')
@@ -7557,6 +9549,9 @@ class AvalonGameManager:
                                 style='Accent.TButton',
                                 command=lambda: self.save_edited_game(parent))
         save_button.pack(side=tk.RIGHT)
+        
+        # Bind Enter para guardar
+        parent.bind('<Return>', lambda event: self.save_edited_game(parent))
     
     def browse_edit_image(self):
         """Explorar imagen para el juego (modo edición)"""
@@ -7635,14 +9630,18 @@ class AvalonGameManager:
                 messagebox.showerror("Error", "No se pudo copiar la nueva imagen del mapa")
                 return
         
-        # Actualizar el juego en la lista
+        # Actualizar el juego en la lista preservando campos existentes
         game_index = self.games.index(self.edit_original_game)
         self.games[game_index] = {
             'name': name,
             'image_path': local_image_path,
             'map_type': map_type,
             'map_content': local_map_content,
-            'favorite': self.edit_original_game.get('favorite', False)  # Preservar estado de favorito
+            'favorite': self.edit_original_game.get('favorite', False),
+            'tasks': self.edit_original_game.get('tasks', []),
+            'description': self.edit_original_game.get('description', ''),
+            'date_added': self.edit_original_game.get('date_added', datetime.now().isoformat()),
+            'total_play_time': self.edit_original_game.get('total_play_time', 0)
         }
         
         # Guardar y actualizar la interfaz
@@ -7673,7 +9672,17 @@ class AvalonGameManager:
         if os.path.exists(self.games_file):
             try:
                 with open(self.games_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
+                    games = json.load(f)
+                    for game in games:
+                        if 'tasks' not in game:
+                            game['tasks'] = []
+                        if 'description' not in game:
+                            game['description'] = ''
+                        if 'date_added' not in game:
+                            game['date_added'] = datetime.now().isoformat()
+                        if 'total_play_time' not in game:
+                            game['total_play_time'] = 0
+                    return games
             except Exception as e:
                 print(f"Error cargando juegos: {e}")
                 return []
@@ -7691,10 +9700,23 @@ class AvalonGameManager:
         """Manejar redimensionamiento de ventana para layout responsive"""
         # Solo procesar eventos del widget root, no de widgets hijos
         if event.widget == self.root:
-            # Usar after para evitar múltiples llamadas rápidas durante el redimensionamiento
-            if hasattr(self, '_resize_job'):
-                self.root.after_cancel(self._resize_job)
-            self._resize_job = self.root.after(300, self.refresh_games_display)
+            # Verificar si el ancho actual es diferente del anterior
+            current_width = self.root.winfo_width()
+            
+            if not hasattr(self, '_last_window_width'):
+                self._last_window_width = current_width
+            
+            # Solo refrescar si el ancho cambió significativamente (más de 20 píxeles)
+            if abs(current_width - self._last_window_width) > 20:
+                self._last_window_width = current_width
+                
+                # Usar after para evitar múltiples llamadas rápidas durante el redimensionamiento
+                if hasattr(self, '_resize_job'):
+                    self.root.after_cancel(self._resize_job)
+                self._resize_job = self.root.after(300, self.refresh_games_display)
+            else:
+                # No es un redimensionamiento real, actualizar el valor almacenado
+                self._last_window_width = current_width
     
     def on_closing(self):
         """Método llamado al cerrar la aplicación para limpiar recursos"""
@@ -7748,14 +9770,46 @@ class AvalonGameManager:
         self.create_edit_game_form(dialog)
 
 def main():
+    def load_config_for_splash():
+        """Cargar configuración antes del splash screen"""
+        try:
+            if getattr(sys, 'frozen', False):
+                base_dir = os.path.join(os.environ['APPDATA'], 'Avilon')
+                os.makedirs(base_dir, exist_ok=True)
+            else:
+                base_dir = os.path.dirname(os.path.abspath(__file__))
+            
+            config_file = os.path.join(base_dir, "avilon_config.json")
+            config = {'language': 'es', 'theme': 'slate', 'startup': False}
+            
+            if os.path.exists(config_file):
+                import json
+                with open(config_file, 'r', encoding='utf-8') as f:
+                    loaded_config = json.load(f)
+                    config.update(loaded_config)
+            
+            return config
+        except Exception as e:
+            print(f"Error loading config: {e}")
+            return {'language': 'es', 'theme': 'slate', 'startup': False}
+    
     def start_main_app():
         """Iniciar la aplicación principal después del splash"""
         root = tk.Tk()
         app = AvalonGameManager(root)
         root.mainloop()
     
-    # Mostrar splash screen con callback
-    splash = SplashScreen()
+    config = load_config_for_splash()
+    language = config.get('language', 'es')
+    
+    translations_temp = {}
+    try:
+        temp_app = AvalonGameManager.__new__(AvalonGameManager)
+        translations_temp = temp_app.load_translations()
+    except:
+        pass
+    
+    splash = SplashScreen(language=language, translations=translations_temp)
     splash.show(on_complete=start_main_app)
 
 if __name__ == "__main__":
