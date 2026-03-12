@@ -126,4 +126,5 @@ Si el proyecto te resulta útil puedes apoyarlo de varias maneras:
 
 # 📄 Licencia
 
-Consulta el archivo de licencia incluido en este repositorio para más información.
+Este proyecto está distribuido bajo la licencia MIT.  
+Consulta el archivo `LICENSE` para más información.
