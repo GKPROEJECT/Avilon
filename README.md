@@ -1,142 +1,129 @@
-# 🎮 Avilon
+<p align="center">
+<img src="logo.png" width="180">
+</p>
+
+<h1 align="center">Avilon</h1>
 
 <p align="center">
-<b>Avilon</b> es una herramienta creada <b>por y para gamers</b> que permite organizar tus juegos, añadir mapas o guías y acceder rápidamente a la información que necesitas mientras juegas.
+Una herramienta pensada para jugadores que quieren tener sus mapas, guías y recursos de juego siempre organizados y accesibles.
 </p>
 
 <p align="center">
-<a href="https://avilon.es/">🌐 Web oficial</a> •
-<a href="https://avilon.es/">📥 Descargas</a> •
-<a href="https://avilon.es/">📧 Soporte</a>
+<a href="https://avilon.es/">🌐 Sitio oficial</a>
 </p>
 
 ---
 
-## 🧩 ¿Qué es Avilon?
+# 🎮 Sobre Avilon
 
-**Avilon** es una aplicación desarrollada en **Python** pensada para ayudar a los jugadores a **organizar y consultar información de sus juegos favoritos** de forma rápida y visual.
+**Avilon** es una aplicación de escritorio desarrollada en **Python** cuyo objetivo es ayudar a los jugadores a **centralizar información útil de sus juegos** en un solo lugar.
 
-Con Avilon puedes crear tu propia biblioteca de juegos y añadir:
+La aplicación permite construir una biblioteca personalizada de juegos donde cada título puede incluir información relevante como descripciones, mapas o guías. Todo se presenta a través de una interfaz visual basada en **tarjetas**, facilitando el acceso rápido a los recursos asociados a cada juego.
 
-* Descripciones
-* Mapas
-* Guías
-* Recursos externos
-
-Todo accesible desde una interfaz sencilla y visual.
+Avilon está pensado para jugadores que utilizan con frecuencia **mapas interactivos, guías online o referencias visuales** mientras juegan y quieren tenerlas organizadas de forma cómoda.
 
 ---
 
-## ✨ Características
+# ✨ Funcionalidades
 
-### 🎮 Gestión de juegos
+## Biblioteca personal de juegos
 
-Añade tus juegos con:
+Avilon permite crear y mantener una colección de juegos personalizada.
+Cada entrada puede incluir información descriptiva y recursos relacionados que el usuario quiera consultar mientras juega.
 
-* Nombre
-* Descripción
-* Recursos asociados
-
-Cada juego aparece en la pantalla principal en forma de **tarjeta visual**.
+Los juegos añadidos se muestran en la interfaz principal mediante **tarjetas visuales**, lo que facilita navegar entre ellos de forma rápida.
 
 ---
 
-### 🗺 Mapas y guías integradas
+## Integración de guías y mapas
 
-Avilon permite añadir dos tipos de guías:
+La aplicación permite asociar diferentes tipos de recursos a cada juego:
 
-🌐 **Guías web interactivas**
+**Contenido web**
 
-* Mapas online
+* Mapas interactivos
 * Wikis
-* Herramientas interactivas
+* Herramientas online
+* Guías externas
 
-🖼 **Mapas en imagen**
+**Recursos visuales**
 
 * Mapas del juego
-* Guías visuales
+* Guías gráficas
 * Imágenes de referencia
 
-Todo accesible directamente desde Avilon.
+Esto permite consultar la información directamente desde Avilon sin necesidad de buscarla manualmente cada vez.
 
 ---
 
-### 🎨 Personalización
+## Personalización del entorno
 
-Avilon incluye varias opciones de personalización:
+Avilon incluye varias opciones de configuración que permiten adaptar la aplicación a las preferencias del usuario:
 
-* 🎨 **Temas visuales**
-* 🌍 **Soporte multilenguaje**
-* ⌨ **Atajos de teclado configurables**
+* Temas visuales
+* Sistema de idiomas
+* Configuración de atajos de teclado
 
-Los usuarios pueden cambiar o crear sus propios **shortcuts de teclado**.
-
----
-
-### 📘 Guía integrada
-
-El propio programa incluye una **guía de uso integrada** para que cualquier usuario pueda aprender a utilizar todas las funciones de Avilon.
+Los atajos pueden modificarse para ajustarse al flujo de trabajo de cada usuario.
 
 ---
 
-## 🖥 Interfaz
+## Guía integrada
 
-Los juegos añadidos aparecen en la ventana principal en forma de **tarjetas**, permitiendo acceder rápidamente a:
+El propio programa incluye documentación accesible desde la interfaz que explica el funcionamiento de las distintas herramientas disponibles.
+
+Esto permite que nuevos usuarios puedan familiarizarse rápidamente con el sistema.
+
+---
+
+# 🖥 Interfaz
+
+La interfaz de Avilon está diseñada para ser **clara, rápida y centrada en el contenido**.
+
+La pantalla principal muestra los juegos añadidos en forma de tarjetas, desde las que se puede acceder fácilmente a:
 
 * Información del juego
-* Mapas
-* Guías
-* Recursos añadidos
+* Recursos asociados
+* Mapas o guías añadidos
+
+El objetivo es reducir el tiempo necesario para encontrar la información que el jugador necesita.
 
 ---
 
-## 🐍 Tecnología
+# 🐍 Tecnología
 
-Avilon está desarrollado con:
+Avilon está desarrollado en **Python** como aplicación de escritorio.
 
-* **Python**
-
-El objetivo es crear una herramienta ligera, rápida y fácil de usar.
+El proyecto se centra en ofrecer una herramienta ligera, eficiente y fácil de mantener.
 
 ---
 
-## 🌐 Web oficial
+# 🌐 Sitio web
 
-Visita la página oficial del proyecto:
+Más información sobre el proyecto está disponible en el sitio oficial:
 
-👉 https://avilon.es/
+https://avilon.es/
 
-Desde allí puedes encontrar información, soporte y novedades.
-
----
-
-## 📩 Soporte técnico
-
-Si tienes problemas o sugerencias puedes contactar mediante **correo electrónico** desde la web oficial.
-
-🌐 https://avilon.es/
+Desde la web es posible encontrar novedades, soporte y recursos relacionados con Avilon.
 
 ---
 
-## ⭐ Apoya el proyecto
+# 📩 Soporte
 
-Si te gusta Avilon puedes ayudar al proyecto:
-
-* ⭐ Dar una estrella al repositorio
-* 🐛 Reportar errores
-* 💡 Proponer nuevas funciones
-* 📢 Compartir el proyecto
+Si encuentras algún problema o deseas realizar una consulta, puedes contactar con el soporte técnico a través del sitio web oficial.
 
 ---
 
-## 🚀 Objetivo del proyecto
+# ⭐ Contribución y apoyo
 
-Avilon nace con una idea simple:
+Si el proyecto te resulta útil puedes apoyarlo de varias maneras:
 
-> Tener todas las guías y mapas de tus juegos en un solo lugar.
+* Dar una estrella al repositorio
+* Compartir el proyecto
+* Enviar sugerencias o reportar errores
 
 ---
 
-## 📄 Licencia
+# 📄 Licencia
 
-Consulta la licencia en este repositorio.
+Consulta el archivo de licencia incluido en este repositorio para más información.
