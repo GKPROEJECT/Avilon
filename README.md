@@ -1,130 +1,210 @@
+# Avilon 🎮
+
 <p align="center">
-<img src="logo.png" width="180">
+  <img src="logo.png" alt="Avilon Logo" width="120">
 </p>
 
 <h1 align="center">Avilon</h1>
 
 <p align="center">
-Una herramienta pensada para jugadores que quieren tener sus mapas, guías y recursos de juego siempre organizados y accesibles.
+  <strong>Your games. Your guides. Your maps. All in one place.</strong>
 </p>
 
 <p align="center">
-<a href="https://avilon.es/">🌐 Sitio oficial</a>
+  Keep the maps, guides, tools and resources you use while gaming organized and instantly accessible.
+</p>
+
+<p align="center">
+  <a href="https://avilon.es/">
+    🌐 Official Website
+  </a>
+  ·
+  <a href="https://github.com/GKPROEJECT/Avilon">
+    💻 GitHub
+  </a>
 </p>
 
 ---
 
-# 🎮 Sobre Avilon
+## 🎮 What is Avilon?
 
-**Avilon** es una aplicación de escritorio desarrollada en **Python** cuyo objetivo es ayudar a los jugadores a **centralizar información útil de sus juegos** en un solo lugar.
+**Avilon** is a desktop application designed for gamers who want to keep all the information they use while playing **organized, accessible and in one place**.
 
-La aplicación permite construir una biblioteca personalizada de juegos donde cada título puede incluir información relevante como descripciones, mapas o guías. Todo se presenta a través de una interfaz visual basada en **tarjetas**, facilitando el acceso rápido a los recursos asociados a cada juego.
+Instead of having dozens of browser tabs, bookmarks, images and external tools scattered around, Avilon lets you create your own **personal game library** and associate the resources you need with each game.
 
-Avilon está pensado para jugadores que utilizan con frecuencia **mapas interactivos, guías online o referencias visuales** mientras juegan y quieren tenerlas organizadas de forma cómoda.
+Maps, guides, wikis, interactive tools, images and other references can all be organized around the games you play.
+
+### Built for gamers who use
+
+* 🗺️ Interactive maps
+* 📖 Wikis and guides
+* 🧭 Game databases
+* 🖼️ Visual references
+* 🔧 Online tools
+* 📚 Game documentation
+
+**Avilon puts the information you need where you need it.**
 
 ---
 
-# ✨ Funcionalidades
+## ✨ Features
 
-## Biblioteca personal de juegos
+### 🎮 Personal Game Library
 
-Avilon permite crear y mantener una colección de juegos personalizada.
-Cada entrada puede incluir información descriptiva y recursos relacionados que el usuario quiera consultar mientras juega.
+Create your own collection of games and organize them in a visual interface.
 
-Los juegos añadidos se muestran en la interfaz principal mediante **tarjetas visuales**, lo que facilita navegar entre ellos de forma rápida.
+Each game can have its own information and associated resources, making it easy to find everything related to that title.
+
+Games are displayed as **visual cards**, allowing you to quickly navigate through your library.
 
 ---
 
-## Integración de guías y mapas
+### 🗺️ Maps, Guides & Resources
 
-La aplicación permite asociar diferentes tipos de recursos a cada juego:
+Attach different types of resources to your games and access them directly from Avilon.
 
-**Contenido web**
+#### 🌐 Web Resources
 
-* Mapas interactivos
+* Interactive maps
 * Wikis
-* Herramientas online
-* Guías externas
+* Online tools
+* External guides
+* Game databases
+* Other useful websites
 
-**Recursos visuales**
+#### 🖼️ Visual Resources
 
-* Mapas del juego
-* Guías gráficas
-* Imágenes de referencia
+* Game maps
+* Graphic guides
+* Reference images
+* Other visual material
 
-Esto permite consultar la información directamente desde Avilon sin necesidad de buscarla manualmente cada vez.
-
----
-
-## Personalización del entorno
-
-Avilon incluye varias opciones de configuración que permiten adaptar la aplicación a las preferencias del usuario:
-
-* Temas visuales
-* Sistema de idiomas
-* Configuración de atajos de teclado
-
-Los atajos pueden modificarse para ajustarse al flujo de trabajo de cada usuario.
+Instead of searching for the same resources every time you play, keep them organized with the game they belong to.
 
 ---
 
-## Guía integrada
+### 🎨 Personalization
 
-El propio programa incluye documentación accesible desde la interfaz que explica el funcionamiento de las distintas herramientas disponibles.
+Avilon provides several customization options so you can adapt the application to your preferences.
 
-Esto permite que nuevos usuarios puedan familiarizarse rápidamente con el sistema.
+Available options include:
 
----
+* 🎨 Visual themes
+* 🌍 Multiple languages
+* ⌨️ Custom keyboard shortcuts
 
-# 🖥 Interfaz
-
-La interfaz de Avilon está diseñada para ser **clara, rápida y centrada en el contenido**.
-
-La pantalla principal muestra los juegos añadidos en forma de tarjetas, desde las que se puede acceder fácilmente a:
-
-* Información del juego
-* Recursos asociados
-* Mapas o guías añadidos
-
-El objetivo es reducir el tiempo necesario para encontrar la información que el jugador necesita.
+Keyboard shortcuts can be configured to fit your preferred workflow.
 
 ---
 
-# 🐍 Tecnología
+### 📖 Built-in Guide
 
-Avilon está desarrollado en **Python** como aplicación de escritorio.
+Avilon includes an integrated guide that explains the different tools and features available in the application.
 
-El proyecto se centra en ofrecer una herramienta ligera, eficiente y fácil de mantener.
-
----
-
-# 🌐 Sitio web
-
-Más información sobre el proyecto está disponible en el sitio oficial:
-
-https://avilon.es/
-
-Desde la web es posible encontrar novedades, soporte y recursos relacionados con Avilon.
+This makes it easier for new users to understand how Avilon works without having to search for external documentation.
 
 ---
 
-# 📩 Soporte
+## 🖥️ Interface
 
-Si encuentras algún problema o deseas realizar una consulta, puedes contactar con el soporte técnico a través del sitio web oficial.
+Avilon is designed around a simple principle:
+
+> **The information you need should be easy to find.**
+
+The main interface presents your games as visual cards, giving you quick access to the information and resources associated with each title.
+
+From a game you can access:
+
+* Game information
+* Associated resources
+* Maps
+* Guides
+* Visual references
+* Other tools you've added
+
+The goal is to reduce the time spent searching for information and let you get back to playing.
 
 ---
 
-# ⭐ Contribución y apoyo
+## 🚀 How Avilon Works
 
-Si el proyecto te resulta útil puedes apoyarlo de varias maneras:
+The workflow is simple:
 
-* Dar una estrella al repositorio
-* Compartir el proyecto
-* Enviar sugerencias o reportar errores
+**Create your library → Add a game → Add your resources → Access everything when you need it.**
+
+You decide what information belongs to each game and how you want to organize it.
+
+Avilon is designed to become your **personal gaming information hub**.
 
 ---
 
-# 📄 Licencia
+## 🐍 Technology
 
-Este proyecto está distribuido bajo la licencia MIT.  
-Consulta el archivo `LICENSE` para más información.
+Avilon is a desktop application developed in **Python**.
+
+The project focuses on providing a lightweight, efficient and maintainable desktop experience while keeping the interface simple and focused on the content.
+
+---
+
+## 🌐 Official Website
+
+Learn more about Avilon, find project information and access additional resources through the official website.
+
+<p align="center">
+  <a href="https://avilon.es/">
+    <strong>🌐 Visit avilon.es →</strong>
+  </a>
+</p>
+
+---
+
+## 📩 Support
+
+Having a problem with Avilon or need help?
+
+Visit the official website for support and additional information.
+
+You can also use the GitHub repository to report bugs or suggest improvements.
+
+* 🌐 **[Avilon Website](https://avilon.es/)**
+* 🐛 **[Report an Issue](https://github.com/GKPROEJECT/Avilon/issues)**
+
+---
+
+## ⭐ Support Avilon
+
+If you find Avilon useful, there are several ways you can support the project:
+
+* ⭐ Give the repository a star
+* 📢 Share Avilon with other gamers
+* 💡 Suggest new features
+* 🐛 Report bugs
+* 🤝 Contribute to the project
+
+Every bit of support helps Avilon grow.
+
+---
+
+## 📄 License
+
+Avilon is distributed under the **MIT License**.
+
+See the [`LICENSE`](LICENSE) file for the complete license.
+
+---
+
+<p align="center">
+  <strong>Your games. Your resources. One place.</strong>
+</p>
+
+<p align="center">
+  Made with ❤️ for gamers.
+</p>
+
+<p align="center">
+  <a href="https://avilon.es/">Website</a>
+  ·
+  <a href="https://github.com/GKPROEJECT/Avilon">GitHub</a>
+  ·
+  <a href="https://github.com/GKPROEJECT/Avilon/issues">Issues</a>
+</p>
