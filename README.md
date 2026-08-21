@@ -1,6 +1,6 @@
 <p align="center">
-  🌐 <strong>Language:</strong>
-  <a href="README.md">🇬🇧 English</a> ·
+  <a href="README.md">🇬🇧 English</a>
+  &nbsp;•&nbsp;
   <a href="Translations/README.es.md">🇪🇸 Español</a>
 </p>
 
