@@ -1,3 +1,9 @@
+<p align="center">
+  🌐 <strong>Language:</strong>
+  <a href="README.md">🇬🇧 English</a> ·
+  <a href="Translations/README.es.md">🇪🇸 Español</a>
+</p>
+
 # Avilon 🎮
 
 <p align="center">
