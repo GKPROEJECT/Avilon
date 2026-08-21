@@ -2,6 +2,18 @@
   <a href="README.md">🇬🇧 English</a>
   &nbsp;•&nbsp;
   <a href="Translations/README.es.md">🇪🇸 Español</a>
+  &nbsp;•&nbsp;
+  <a href="Translations/README.fr.md">🇫🇷 Français</a>
+  &nbsp;•&nbsp;
+  <a href="Translations/README.de.md">🇩🇪 Deutsch</a>
+  &nbsp;•&nbsp;
+  <a href="Translations/README.it.md">🇮🇹 Italiano</a>
+  &nbsp;•&nbsp;
+  <a href="Translations/README.pt.md">🇵🇹 Português</a>
+  &nbsp;•&nbsp;
+  <a href="Translations/README.ja.md">🇯🇵 日本語</a>
+  &nbsp;•&nbsp;
+  <a href="Translations/README.nl.md">🇳🇱 Nederlands</a>
 </p>
 
 # Avilon 🎮
