@@ -1,11 +1,16 @@
 # -*- mode: python ; coding: utf-8 -*-
+import os
+import sys
 
+project_dir = SPECPATH
+app_icon = os.path.join(project_dir, 'logo.ico' if sys.platform == 'win32' else 'logo.png')
 a = Analysis(
-    ['C:\\Users\\gimen\\Desktop\\GKPROJECT\\Avilon\\Avilon_clean.py'],
-    pathex=['C:\\Users\\gimen\\Desktop\\GKPROJECT\\Avilon'],
+    [os.path.join(project_dir, 'Avilon_clean.py')],
+    pathex=[project_dir],
     binaries=[],
     datas=[
-        ('C:\\Users\\gimen\\Desktop\\GKPROJECT\\Avilon\\logo.ico', '.'),
+        (os.path.join(project_dir, 'logo.png'), '.'),
+        (os.path.join(project_dir, 'logo.ico'), '.'),
     ],
     hiddenimports=[],
     hookspath=[],
@@ -36,5 +41,5 @@ exe = EXE(
     target_arch=None,
     codesign_identity=None,
     entitlements_file=None,
-    icon=['C:\\Users\\gimen\\Desktop\\GKPROJECT\\Avilon\\logo.ico'],
+    icon=app_icon,
 )

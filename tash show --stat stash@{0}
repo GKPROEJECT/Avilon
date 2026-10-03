@@ -1,0 +1,43 @@
+ .vscode/settings.json                               |     3 [32m+[m
+ Avilon.spec                                         |    39 [32m+[m
+ Avilon_backup_before_enter.py                       |  6354 [32m++++++++++++[m
+ Avilon_build.spec                                   |    42 [32m+[m
+ Avilon_clean.py                                     |  9816 [32m++++++++++++++++++[m
+ Avilon_clean.spec                                   |    40 [32m+[m
+ FEATURES.md                                         |    58 [32m+[m
+ LICENSE                                             |     9 [32m+[m
+ README.md                                           |   228 [32m+[m
+ Translations/README.de.md                           |   188 [32m+[m
+ Translations/README.es.md                           |   184 [32m+[m
+ Translations/README.fr.md                           |   186 [32m+[m
+ Translations/README.it.md                           |   190 [32m+[m
+ Translations/README.ja.md                           |   194 [32m+[m
+ Translations/README.nl.md                           |   196 [32m+[m
+ Translations/README.pt.md                           |   192 [32m+[m
+ __pycache__/Avilon_clean.cpython-313.pyc            |   Bin [31m0[m -> [32m436148[m bytes
+ __pycache__/updater.cpython-313.pyc                 |   Bin [31m0[m -> [32m3023[m bytes
+ avilon_config.json                                  |    15 [32m+[m
+ avilon_games.json                                   |     1 [32m+[m
+ build/Avilon_build/Analysis-00.toc                  |  7095 [32m+++++++++++++[m
+ build/Avilon_build/Avilon.pkg                       |   Bin [31m0[m -> [32m73859889[m bytes
+ build/Avilon_build/EXE-00.toc                       |  4239 [32m++++++++[m
+ build/Avilon_build/PKG-00.toc                       |  4216 [32m++++++++[m
+ build/Avilon_build/PYZ-00.pyz                       |   Bin [31m0[m -> [32m5780298[m bytes
+ build/Avilon_build/PYZ-00.toc                       |  2262 [32m+++++[m
+ build/Avilon_build/base_library.zip                 |   Bin [31m0[m -> [32m1403000[m bytes
+ build/Avilon_build/localpycs/pyimod01_archive.pyc   |   Bin [31m0[m -> [32m4930[m bytes
+ build/Avilon_build/localpycs/pyimod02_importers.pyc |   Bin [31m0[m -> [32m31802[m bytes
+ build/Avilon_build/localpycs/pyimod03_ctypes.pyc    |   Bin [31m0[m -> [32m6450[m bytes
+ build/Avilon_build/localpycs/pyimod04_pywin32.pyc   |   Bin [31m0[m -> [32m1679[m bytes
+ build/Avilon_build/localpycs/struct.pyc             |   Bin [31m0[m -> [32m305[m bytes
+ build/Avilon_build/warn-Avilon_build.txt            |   139 [32m+[m
+ build/Avilon_build/xref-Avilon_build.html           | 26102 [32m++++++++++++++++++++++++++++++++++++++++++++++++[m
+ dist/Avilon.exe                                     |   Bin [31m0[m -> [32m74186545[m bytes
+ games_images/hgfhgf.png                             |   Bin [31m0[m -> [32m287235[m bytes
+ games_images/hgfhgf_map.png                         |   Bin [31m0[m -> [32m287235[m bytes
+ logo.ico                                            |   Bin [31m0[m -> [32m48375[m bytes
+ logo.png                                            |   Bin [31m0[m -> [32m287235[m bytes
+ requirements.txt                                    |     2 [32m+[m
+ temp_logo.ico                                       |   Bin [31m0[m -> [32m48375[m bytes
+ unins000.dat                                        |   Bin [31m0[m -> [32m6937[m bytes
+ 42 files changed, 61990 insertions(+)

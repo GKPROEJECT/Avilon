@@ -132,6 +132,20 @@ Avilon es una aplicación de escritorio desarrollada en **Python**.
 
 El proyecto se centra en ofrecer una experiencia de escritorio ligera, eficiente y fácil de mantener, manteniendo la interfaz sencilla y centrada en el contenido.
 
+### Linux (CachyOS y Arch Linux)
+
+Construye e instala el paquete nativo de Arch desde una terminal:
+
+```bash
+git clone https://github.com/GKPROEJECT/Avilon.git
+cd Avilon
+makepkg -si
+```
+
+`makepkg` construye un paquete instalable `.pkg.tar.zst` e instala sus dependencias declaradas, incluidas Tk, GTK, WebKitGTK y GStreamer. También añade Avilon al menú de aplicaciones e instala su icono. Ejecuta `makepkg` como usuario normal (no con `sudo`). Si ya tienes el archivo del paquete, instala primero sus dependencias con `sudo pacman -S --needed python tk webkit2gtk-4.1 python-gobject python-pillow python-pywebview gst-plugins-good` y, después, el paquete con `sudo pacman -U avilon-*.pkg.tar.zst`. Para desinstalarlo, ejecuta `sudo pacman -R avilon`. Tus juegos, imágenes y ajustes se conservan.
+
+Los mapas web se muestran en una ventana WebKitGTK propia de Avilon, sin redirigirse a un navegador externo ni limitarse a un iframe. GTK utiliza el backend disponible, incluido Wayland cuando está disponible. Los complementos multimedia de GStreamer proporcionan la salida de audio que WebKit necesita en páginas con contenido multimedia. Se conserva la interfaz principal existente basada en Tkinter. Los datos y las imágenes de los juegos se guardan en `$XDG_DATA_HOME/Avilon` (o `~/.local/share/Avilon`), y el inicio automático se configura mediante XDG autostart.
+
 ---
 
 ## 🌐 Sitio web oficial

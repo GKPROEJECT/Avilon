@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=Avilon
+Comment=Organize your games, maps, guides, and resources
+Exec=avilon
+TryExec=avilon
+Icon=avilon
+Terminal=false
+Categories=Game;
