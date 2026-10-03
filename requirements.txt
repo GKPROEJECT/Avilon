@@ -1,0 +1,2 @@
+Pillow>=9.0.0
+pywebview>=4.0.0
