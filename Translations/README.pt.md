@@ -181,7 +181,8 @@ Todo o apoio ajuda o Avilon a crescer.
 
 Avilon é distribuído sob os termos da **GNU General Public License v3.0 (GPLv3)**.
 
-Você pode consultar os termos completos da licença no arquivo [LICENSE](../LIC)
+Você pode consultar os termos completos da licença no arquivo [LICENSE](../LICENSE).
+
 
 
 ---
