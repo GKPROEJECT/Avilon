@@ -181,9 +181,10 @@ Avilonが役に立った場合は、以下の方法でプロジェクトをサ�
 
 ## 📄 ライセンス
 
-Avilonは**MITライセンス**のもとで配布されています。
+Avilonは、**GNU General Public License v3.0（GPLv3）**のもとで配布されています。
 
-完全なライセンスについては[`LICENSE`](../LICENSE)ファイルをご覧ください。
+ライセンスの完全な利用条件については、[LICENSE](../LICENSE)ファイルをご覧ください。
+
 
 ---
 
