@@ -183,9 +183,10 @@ Elke vorm van ondersteuning helpt Avilon te groeien.
 
 ## 📄 Licentie
 
-Avilon wordt verspreid onder de **MIT-licentie**.
+Avilon wordt gedistribueerd onder de voorwaarden van de **GNU General Public License v3.0 (GPLv3)**.
 
-Bekijk het bestand [`LICENSE`](../LICENSE) voor de volledige licentie.
+Je kunt de volledige licentievoorwaarden bekijken in het bestand [LICENSE](../LICENSE).
+
 
 ---
 
