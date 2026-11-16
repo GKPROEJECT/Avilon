@@ -1,4 +1,4 @@
-name: AVILON Windows Release
+name: AVILON Release Validation
 
 on:
   release:
@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   validate-release:
-    name: Validate Windows release
+    name: Validate AVILON release
     runs-on: ubuntu-latest
 
     steps:
@@ -20,12 +20,18 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME}"
 
-          if [[ ! "$VERSION" =~ ^windows-[0-9]+(\.[0-9]+)*$ ]]; then
-            echo "Invalid Windows version: $VERSION"
+          if [[ "$VERSION" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "PLATFORM=linux" >> "$GITHUB_ENV"
+            echo "Linux release: $VERSION"
+
+          elif [[ "$VERSION" =~ ^windows-[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "PLATFORM=windows" >> "$GITHUB_ENV"
+            echo "Windows release: $VERSION"
+
+          else
+            echo "Invalid release tag: $VERSION"
             exit 1
           fi
-
-          echo "Windows release version: $VERSION"
 
       - name: Check release assets
         env:
@@ -35,11 +41,20 @@ jobs:
             --json assets \
             --jq '.assets[].name' > assets.txt
 
-          if ! grep -qi '^AvilonSetup\.exe$' assets.txt; then
-            echo "Error: AvilonSetup.exe not found."
-            cat assets.txt
-            exit 1
+          if [[ "$PLATFORM" == "linux" ]]; then
+            if ! grep -q '\.pkg\.tar\.zst$' assets.txt; then
+              echo "Linux package not found."
+              cat assets.txt
+              exit 1
+            fi
+
+          elif [[ "$PLATFORM" == "windows" ]]; then
+            if ! grep -qi '^AvilonSetup\.exe$' assets.txt; then
+              echo "Windows installer not found."
+              cat assets.txt
+              exit 1
+            fi
           fi
 
-          echo "Windows installer found:"
+          echo "Release assets validated:"
           cat assets.txt
