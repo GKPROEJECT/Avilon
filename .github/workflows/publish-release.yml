@@ -1,0 +1,45 @@
+name: AVILON Linux Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-release:
+    name: Validate Linux release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v4
+
+      - name: Validate release tag
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+
+          if [[ ! "$VERSION" =~ ^[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "Invalid Linux version: $VERSION"
+            exit 1
+          fi
+
+          echo "Linux release version: $VERSION"
+
+      - name: Check release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" \
+            --json assets \
+            --jq '.assets[].name' > assets.txt
+
+          if ! grep -q '\.pkg\.tar\.zst$' assets.txt; then
+            echo "Error: Linux package (.pkg.tar.zst) not found."
+            cat assets.txt
+            exit 1
+          fi
+
+          echo "Linux package found:"
+          cat assets.txt
