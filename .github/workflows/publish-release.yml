@@ -1,0 +1,45 @@
+name: AVILON Windows Release
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  validate-release:
+    name: Validate Windows release
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download repository
+        uses: actions/checkout@v4
+
+      - name: Validate release tag
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+
+          if [[ ! "$VERSION" =~ ^windows-[0-9]+(\.[0-9]+)*$ ]]; then
+            echo "Invalid Windows version: $VERSION"
+            exit 1
+          fi
+
+          echo "Windows release version: $VERSION"
+
+      - name: Check release assets
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" \
+            --json assets \
+            --jq '.assets[].name' > assets.txt
+
+          if ! grep -qi '^AvilonSetup\.exe$' assets.txt; then
+            echo "Error: AvilonSetup.exe not found."
+            cat assets.txt
+            exit 1
+          fi
+
+          echo "Windows installer found:"
+          cat assets.txt
