@@ -1,6 +1,6 @@
 # Maintainer: GKPROEJECT
 pkgname=avilon
-pkgver=3.0
+pkgver=3.5
 pkgrel=1
 pkgdesc='Desktop game library for maps, guides, and resources'
 arch=('any')
@@ -25,9 +25,9 @@ source=(
   'logo.png'
 )
 sha256sums=(
-  '99830772a9a0a8176d8a87ffecb569bcae45a9f7663ce216df4d3282b68d2477'
-  '712ad6b038cf616723ba50bb37022aef5095ce0356ba0cb73f1399b11c89649c'
-  'f7c25c7eaf8f72dab72475e4a4c19d0d63cc6b6c656cfe2fcdccd7ce176fcbbd'
+  '7840e7e23fd7cb724b1da4d9764e793016ae7a9f790d9482fe7b66a7d447f081'
+  '3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986'
+  '03520fe8d5e0b3d3739efd83efbaa67b5aeecb2196183bca635459d7529b1c62'
   '56ee0d262488f63f80dd14ee5fe67a92e0db28b70a8e73303ef18b6cdde4d926'
   '02f7fddbe5122b83e138357f6ca73ec10b621340f7411133f3f9b06c46477271'
   '2f0ae7b7e4c22e8c3ac31449f7ea10770b922995f7689b4e9c3c4d89de86e89f'

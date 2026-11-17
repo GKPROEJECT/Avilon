@@ -15,6 +15,295 @@ import sys
 import platform
 import shlex
 from datetime import datetime, timedelta
+import threading
+import hashlib
+import tempfile
+import urllib.request
+import queue
+
+
+# Configuración del actualizador Linux
+APP_VERSION = "3.5"
+
+UPDATE_SERVER = "https://desktop-7btaoqb.tail65f39c.ts.net"
+UPDATE_CHECK_URL = (
+    f"{UPDATE_SERVER}/programs/avilon/releases/latest/linux"
+)
+
+
+def check_for_updates():
+    """Consultar si existe una versión Linux más reciente de AVILON."""
+    try:
+        request = urllib.request.Request(
+            UPDATE_CHECK_URL,
+            headers={"User-Agent": "AVILON-Updater"}
+        )
+
+        with urllib.request.urlopen(request, timeout=8) as response:
+            _validate_update_url(response.geturl())
+            release = json.loads(response.read().decode("utf-8"))
+
+        if release.get("platform") != "linux":
+            return None
+
+        latest_version = str(release.get("version", ""))
+        if not re.fullmatch(r"[0-9]+(?:\.[0-9]+)*", latest_version):
+            raise ValueError("El servidor devolvió una versión no válida.")
+
+        current_parts = tuple(int(x) for x in APP_VERSION.split("."))
+        latest_parts = tuple(int(x) for x in latest_version.split("."))
+
+        if latest_parts <= current_parts:
+            return None
+
+        return {
+            "version": latest_version,
+            "sha256": release.get("sha256"),
+            "download_url": (
+                f"{UPDATE_SERVER}/programs/avilon/releases/"
+                f"{latest_version}/linux/download"
+            )
+        }
+
+    except Exception as error:
+        print(f"Error comprobando actualizaciones: {error}")
+        return None
+
+
+def _validate_update_url(url):
+    """Rechazar URLs de actualización que no pertenezcan al servidor HTTPS."""
+    parsed_url = urllib.parse.urlparse(url)
+    server_url = urllib.parse.urlparse(UPDATE_SERVER)
+    if (
+        parsed_url.scheme != "https"
+        or parsed_url.hostname != server_url.hostname
+        or parsed_url.username is not None
+        or parsed_url.password is not None
+        or parsed_url.port not in (None, 443)
+    ):
+        raise ValueError("La URL de actualización no es HTTPS de confianza.")
+
+
+def acquire_update_lock():
+    """Impedir que dos procesos de AVILON actualicen el paquete a la vez."""
+    import fcntl
+
+    lock_path = os.path.join(
+        tempfile.gettempdir(),
+        f"avilon-update-{os.getuid()}.lock"
+    )
+    flags = os.O_CREAT | os.O_RDWR | getattr(os, "O_NOFOLLOW", 0)
+    lock_fd = os.open(lock_path, flags, 0o600)
+    os.fchmod(lock_fd, 0o600)
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError as error:
+        os.close(lock_fd)
+        raise RuntimeError(
+            "Ya hay otra actualización de AVILON en curso."
+        ) from error
+    return lock_fd
+
+
+def release_update_lock(lock_fd):
+    """Liberar el bloqueo de actualización después de un error previo a instalar."""
+    import fcntl
+
+    try:
+        fcntl.flock(lock_fd, fcntl.LOCK_UN)
+    finally:
+        os.close(lock_fd)
+
+
+
+def download_update(update_info, progress_callback=None):
+    """Descargar la actualización y verificar su SHA-256."""
+    download_url = update_info.get("download_url")
+    expected_sha256 = str(update_info.get("sha256", "")).lower()
+
+    if not download_url or len(expected_sha256) != 64:
+        raise ValueError("Información de actualización no válida.")
+
+    _validate_update_url(download_url)
+
+    if not re.fullmatch(r"[a-f0-9]{64}", expected_sha256):
+        raise ValueError("El SHA-256 recibido no es válido.")
+
+    temp_fd, temp_path = tempfile.mkstemp(
+        prefix="avilon_update_",
+        suffix=".pkg.tar.zst"
+    )
+
+    try:
+        request = urllib.request.Request(
+            download_url,
+            headers={"User-Agent": "AVILON-Updater"}
+        )
+
+        with urllib.request.urlopen(request, timeout=30) as response:
+            _validate_update_url(response.geturl())
+            total_size = int(response.headers.get("Content-Length", 0))
+            downloaded = 0
+            sha256 = hashlib.sha256()
+
+            with os.fdopen(temp_fd, "wb") as package_file:
+                temp_fd = None
+
+                while True:
+                    chunk = response.read(1024 * 1024)
+
+                    if not chunk:
+                        break
+
+                    package_file.write(chunk)
+                    sha256.update(chunk)
+                    downloaded += len(chunk)
+
+                    if total_size and progress_callback:
+                        progress_callback(
+                            min(100, int(downloaded * 100 / total_size))
+                        )
+
+        if sha256.hexdigest().lower() != expected_sha256:
+            raise ValueError(
+                "La verificación SHA-256 ha fallado."
+            )
+
+        return temp_path
+
+    except Exception:
+        if temp_fd is not None:
+            os.close(temp_fd)
+
+        if os.path.exists(temp_path):
+            os.remove(temp_path)
+
+        raise
+
+
+def start_update_installer(package_path, lock_fd):
+    """Iniciar el instalador privilegiado, esperando al cierre de AVILON."""
+
+    if not os.path.isfile(package_path):
+        raise FileNotFoundError("No se encuentra el paquete descargado.")
+
+    helper_code = r'''
+import os
+import sys
+import time
+import subprocess
+import fcntl
+
+app_pid = int(sys.argv[1])
+package_path = sys.argv[2]
+helper_path = sys.argv[3]
+lock_fd = int(sys.argv[4])
+error_message = None
+
+# Esperar a que AVILON se cierre completamente.
+while True:
+    try:
+        os.kill(app_pid, 0)
+        time.sleep(0.25)
+    except ProcessLookupError:
+        break
+    except PermissionError:
+        time.sleep(0.25)
+
+try:
+    result = subprocess.run([
+        "pkexec",
+        "/usr/bin/pacman",
+        "-U",
+        "--noconfirm",
+        package_path
+    ], check=False)
+    if result.returncode == 126:
+        error_message = "Se canceló o denegó la autorización. AVILON no se actualizó."
+    elif result.returncode != 0:
+        error_message = (
+            "pacman no pudo instalar la actualización "
+            f"(código de salida {result.returncode})."
+        )
+except OSError as error:
+    error_message = f"No se pudo iniciar el instalador: {error}"
+finally:
+    for temporary_file in (package_path, helper_path):
+        try:
+            os.remove(temporary_file)
+        except OSError:
+            pass
+
+if error_message:
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        dialog_root = tk.Tk()
+        dialog_root.withdraw()
+        messagebox.showerror("Actualización de AVILON", error_message)
+        dialog_root.destroy()
+    except Exception as error:
+        print(f"{error_message} ({error})", file=sys.stderr)
+
+try:
+    fcntl.flock(lock_fd, fcntl.LOCK_UN)
+finally:
+    os.close(lock_fd)
+
+try:
+    subprocess.Popen(
+        ["/usr/bin/avilon"],
+        start_new_session=True
+    )
+except OSError as error:
+    try:
+        import tkinter as tk
+        from tkinter import messagebox
+        dialog_root = tk.Tk()
+        dialog_root.withdraw()
+        messagebox.showerror(
+            "Actualización de AVILON",
+            f"No se pudo volver a iniciar AVILON: {error}"
+        )
+        dialog_root.destroy()
+    except Exception as display_error:
+        print(f"No se pudo volver a iniciar AVILON: {error} ({display_error})",
+              file=sys.stderr)
+'''
+
+    fd, helper_path = tempfile.mkstemp(
+        prefix="avilon_installer_",
+        suffix=".py"
+    )
+
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as helper_file:
+            helper_file.write(helper_code)
+
+        os.chmod(helper_path, 0o700)
+
+        subprocess.Popen(
+            [
+                sys.executable,
+                helper_path,
+                str(os.getpid()),
+                package_path,
+                helper_path,
+                str(lock_fd)
+            ],
+            start_new_session=True,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            pass_fds=(lock_fd,)
+        )
+        os.close(lock_fd)
+
+    except Exception:
+        if os.path.exists(helper_path):
+            os.remove(helper_path)
+        raise
+
 
 def resource_path(relative_path):
     """Obtener la ruta correcta para recursos, funciona tanto en .py como en .exe"""
@@ -175,10 +464,204 @@ try:
 except ImportError:
     gw = None
 
+
+class UpdateWindow:
+    """Ventana gráfica para actualizar AVILON en Linux."""
+
+    def __init__(
+        self,
+        update_info,
+        on_later=None,
+        parent=None,
+        on_prepare_install=None
+    ):
+        self.update_info = update_info
+        self.on_later = on_later
+        self.parent = parent
+        self.on_prepare_install = on_prepare_install
+        self.update_started = False
+        self.update_lock_fd = None
+        self.events = queue.Queue()
+        self.root = tk.Toplevel(parent) if parent else tk.Tk()
+        self.root.title("Actualización de AVILON")
+        self.root.geometry("440x270")
+        self.root.resizable(False, False)
+        self.root.configure(bg="#202124")
+        self.root.protocol("WM_DELETE_WINDOW", self.later)
+        if parent:
+            self.root.transient(parent)
+            self.root.grab_set()
+
+        self.progress = tk.DoubleVar(value=0)
+
+        tk.Label(
+            self.root,
+            text="¡Hay una nueva versión de AVILON!",
+            bg="#202124",
+            fg="white",
+            font=("Arial", 15, "bold")
+        ).pack(pady=(25, 10))
+
+        tk.Label(
+            self.root,
+            text=f"Versión disponible: {update_info['version']}",
+            bg="#202124",
+            fg="#cccccc",
+            font=("Arial", 11)
+        ).pack(pady=5)
+
+        self.status = tk.Label(
+            self.root,
+            text="Preparado para actualizar",
+            bg="#202124",
+            fg="#cccccc"
+        )
+        self.status.pack(pady=10)
+
+        self.progress_bar = ttk.Progressbar(
+            self.root,
+            variable=self.progress,
+            maximum=100,
+            length=350,
+            mode="determinate"
+        )
+        self.progress_bar.pack(pady=5)
+
+        buttons = tk.Frame(self.root, bg="#202124")
+        buttons.pack(pady=15)
+
+        self.button = ttk.Button(
+            buttons,
+            text="Actualizar ahora",
+            command=self.start_update
+        )
+        self.button.pack(side="left", padx=8)
+
+        self.later_button = ttk.Button(
+            buttons,
+            text="Más tarde",
+            command=self.later
+        )
+        self.later_button.pack(side="left", padx=8)
+
+    def later(self):
+        if self.update_started:
+            return
+
+        if self.on_later:
+            self._destroy_window()
+            self.on_later()
+        else:
+            self._destroy_window()
+
+    def set_progress(self, value):
+        self.events.put(("progress", value))
+
+    def start_update(self):
+        if self.update_started:
+            return
+
+        try:
+            self.update_lock_fd = acquire_update_lock()
+        except Exception as error:
+            self.show_error(str(error))
+            return
+
+        self.update_started = True
+        self.button.config(state="disabled")
+        self.later_button.config(state="disabled")
+        self.status.config(text="Descargando actualización...")
+
+        def worker():
+            try:
+                package_path = download_update(
+                    self.update_info,
+                    self.set_progress
+                )
+                self.events.put(("downloaded", package_path))
+
+            except Exception as error:
+                self.events.put(("error", str(error)))
+
+        threading.Thread(target=worker, daemon=True).start()
+        self.root.after(50, self._process_events)
+
+    def _process_events(self):
+        try:
+            while True:
+                event, value = self.events.get_nowait()
+                if event == "progress":
+                    self.progress.set(value)
+                elif event == "downloaded":
+                    self._start_installer(value)
+                elif event == "error":
+                    self.show_error(value)
+        except queue.Empty:
+            pass
+
+        if self._window_exists() and self.update_started:
+            self.root.after(50, self._process_events)
+
+    def _start_installer(self, package_path):
+        self.status.config(text="Descarga verificada. Instalando...")
+        try:
+            start_update_installer(package_path, self.update_lock_fd)
+            self.update_lock_fd = None
+        except Exception as error:
+            try:
+                os.remove(package_path)
+            except OSError:
+                pass
+            self.show_error(str(error))
+            return
+
+        if self.on_prepare_install:
+            self.on_prepare_install()
+        else:
+            self._destroy_window()
+
+    def _window_exists(self):
+        try:
+            return bool(self.root.winfo_exists())
+        except tk.TclError:
+            return False
+
+    def _destroy_window(self):
+        try:
+            self.root.destroy()
+        except tk.TclError:
+            pass
+
+    def show_error(self, message):
+        if self.update_lock_fd is not None:
+            release_update_lock(self.update_lock_fd)
+            self.update_lock_fd = None
+        self.update_started = False
+        self.button.config(state="normal")
+        self.later_button.config(state="normal")
+        self.status.config(text="No se pudo completar la actualización.")
+        messagebox.showerror(
+            "Error de actualización",
+            message,
+            parent=self.root
+        )
+
+    def show(self):
+        if self.parent is None:
+            self.root.mainloop()
+
 class SplashScreen:
+
+
     def __init__(self, language='es', translations=None):
         self.language = language
         self.translations = translations if translations else {}
+
+        # Estado del comprobador de actualizaciones
+        self.update_info = None
+        self.update_check_finished = False
+        self.update_check_thread = None
+        self.update_check_results = queue.Queue()
         
         self.splash = tk.Tk()
         self.splash.title("AVILON")
@@ -228,6 +711,36 @@ class SplashScreen:
         
         # Iniciar animaciones de entrada
         self.start_entrance_animation()
+
+
+    def start_update_check(self):
+        """Consultar actualizaciones en segundo plano."""
+        def worker():
+            result = check_for_updates()
+            self.update_check_results.put(result)
+
+        self.update_check_thread = threading.Thread(
+            target=worker,
+            daemon=True
+        )
+        self.update_check_thread.start()
+        self.splash.after(50, self._process_update_check)
+
+    def _process_update_check(self):
+        try:
+            result = self.update_check_results.get_nowait()
+        except queue.Empty:
+            if not self.update_check_finished:
+                self.splash.after(50, self._process_update_check)
+            return
+
+        self.finish_update_check(result)
+
+    def finish_update_check(self, result):
+        """Guardar el resultado de la comprobación."""
+        self.update_info = result
+        self.update_check_finished = True
+
         
     def create_gradient_background(self):
         """Draw a restrained gaming backdrop with a framed content panel."""
@@ -587,23 +1100,33 @@ class SplashScreen:
         
         lang_dict = self.translations.get(self.language, {})
         return lang_dict.get(key, self.translations.get('es', {}).get(key, key))
-    
+
     def close_splash(self):
-        """Cerrar el splash screen con callback"""
+        """Cerrar el splash cuando termine la comprobación de actualizaciones."""
+
+        # Si la comprobación sigue en curso, esperar un poco.
+        if not self.update_check_finished:
+            self.splash.after(200, self.close_splash)
+            return
+
         self.animation_active = False
+
         for after_id in self.after_ids:
             try:
                 self.splash.after_cancel(after_id)
             except tk.TclError:
                 pass
+
         self.after_ids.clear()
+
         try:
             self.splash.destroy()
         except tk.TclError:
             pass
-            
+
         if hasattr(self, 'on_complete_callback') and self.on_complete_callback:
             self.on_complete_callback()
+
     
     def show(self, on_complete=None):
         """Mostrar el splash screen y iniciar la simulación de carga"""
@@ -611,6 +1134,10 @@ class SplashScreen:
         
         # Hacer visible la ventana (fue ocultada en __init__)
         self.splash.deiconify()
+        if sys.platform.startswith("linux"):
+            self.start_update_check()
+        else:
+            self.update_check_finished = True
         
         # Efecto de fade in inicial
         self.splash.attributes('-alpha', 0.0)
@@ -629,8 +1156,10 @@ class SplashScreen:
         self.splash.mainloop()
 
 class AvalonGameManager:
-    def __init__(self, root):
+    def __init__(self, root, available_update=None):
         self.root = root
+        self.available_update = available_update
+        self.update_window = None
         center_window_on_primary_monitor(self.root, 1200, 800)
         self.root.configure(bg="#2f3136")
         
@@ -797,6 +1326,20 @@ class AvalonGameManager:
         
         # Obtener colores del tema actual
         self.colors = self.themes.get(self.current_theme, self.themes['slate'])
+        sidebar_color = self.colors.get('sidebar', self.colors['bg_dark'])
+        background_color = self.colors['bg_dark']
+        matching_background = sidebar_color.lower() == background_color.lower()
+        blend_color = self.colors['bg_medium'] if matching_background else background_color
+        blend_ratio = 0.05 if matching_background else 0.75
+        self.sidebar_color = '#{:02x}{:02x}{:02x}'.format(
+            *(
+                round(
+                    int(sidebar_color[index:index + 2], 16) * (1 - blend_ratio)
+                    + int(blend_color[index:index + 2], 16) * blend_ratio
+                )
+                for index in (1, 3, 5)
+            )
+        )
         self.ui_font_family = tkFont.nametofont('TkDefaultFont').actual('family')
         
         # Actualizar el fondo de la ventana principal
@@ -1115,7 +1658,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'BIBLIOTECA DE JUEGOS  •  MAPAS  •  GUÍAS',
                 'splash_subtitle': 'Gestor de Biblioteca de Mapas',
-                'splash_version': 'versión 3.0',
+                'splash_version': 'versión 3.5',
                 'splash_initializing': 'Iniciando...',
                 'splash_init_components': '🔧 Inicializando componentes...',
                 'splash_loading_config': '⚙️ Cargando configuración...',
@@ -1389,7 +1932,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'GAME LIBRARY  •  MAPS  •  GUIDES',
                 'splash_subtitle': 'Map Library Manager',
-                'splash_version': 'version 3.0',
+                'splash_version': 'version 3.5',
                 'splash_initializing': 'Starting up...',
                 'splash_init_components': '🔧 Initializing components...',
                 'splash_loading_config': '⚙️ Loading configuration...',
@@ -1665,7 +2208,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'BIBLIOTHÈQUE DE JEUX  •  CARTES  •  GUIDES',
                 'splash_subtitle': 'Gestionnaire de Bibliothèque de Cartes',
-                'splash_version': 'version 3.0',
+                'splash_version': 'version 3.5',
                 'splash_initializing': 'Démarrage...',
                 'splash_init_components': '🔧 Initialisation des composants...',
                 'splash_loading_config': '⚙️ Chargement de la configuration...',
@@ -1941,7 +2484,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'SPIELEBIBLIOTHEK  •  KARTEN  •  GUIDES',
                 'splash_subtitle': 'Kartenbibliotheks-Manager',
-                'splash_version': 'Version 3.0',
+                'splash_version': 'Version 3.5',
                 'splash_initializing': 'Starten...',
                 'splash_init_components': '🔧 Komponenten werden initialisiert...',
                 'splash_loading_config': '⚙️ Konfiguration wird geladen...',
@@ -2216,7 +2759,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'LIBRERIA GIOCHI  •  MAPPE  •  GUIDE',
                 'splash_subtitle': 'Gestione Biblioteca Mappe',
-                'splash_version': 'versione 3.0',
+                'splash_version': 'versione 3.5',
                 'splash_initializing': 'Avvio...',
                 'splash_init_components': '🔧 Inizializzazione componenti...',
                 'splash_loading_config': '⚙️ Caricamento configurazione...',
@@ -2491,7 +3034,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'BIBLIOTECA DE JOGOS  •  MAPAS  •  GUIAS',
                 'splash_subtitle': 'Gerenciador de Biblioteca de Mapas',
-                'splash_version': 'versão 3.0',
+                'splash_version': 'versão 3.5',
                 'splash_initializing': 'Iniciando...',
                 'splash_init_components': '🔧 Inicializando componentes...',
                 'splash_loading_config': '⚙️ Carregando configuração...',
@@ -2766,7 +3309,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'GAMEBIBLIOTHEEK  •  KAARTEN  •  GIDSEN',
                 'splash_subtitle': 'Kaartbibliotheker',
-                'splash_version': 'versie 3.0',
+                'splash_version': 'versie 3.5',
                 'splash_initializing': 'Starten...',
                 'splash_init_components': '🔧 Componenten initialiseren...',
                 'splash_loading_config': '⚙️ Configuratie laden...',
@@ -3041,7 +3584,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'БИБЛИОТЕКА ИГР  •  КАРТЫ  •  РУКОВОДСТВА',
                 'splash_subtitle': 'Менеджер библиотеки карт',
-                'splash_version': 'версия 3.0',
+                'splash_version': 'версия 3.5',
                 'splash_initializing': 'Запуск...',
                 'splash_init_components': '🔧 Инициализация компонентов...',
                 'splash_loading_config': '⚙️ Загрузка конфигурации...',
@@ -3316,7 +3859,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': 'ゲームライブラリ  •  マップ  •  ガイド',
                 'splash_subtitle': 'マップライブラリマネージャー',
-                'splash_version': 'バージョン 3.0',
+                'splash_version': 'バージョン 3.5',
                 'splash_initializing': '起動中...',
                 'splash_init_components': '🔧 コンポーネントの初期化...',
                 'splash_loading_config': '⚙️ 設定の読み込み...',
@@ -3591,7 +4134,7 @@ class AvalonGameManager:
                 # Splash Screen
                 'splash_tagline': '游戏库  •  地图  •  指南',
                 'splash_subtitle': '地图库管理器',
-                'splash_version': '版本 3.0',
+                'splash_version': '版本 3.5',
                 'splash_initializing': '正在启动...',
                 'splash_init_components': '🔧 初始化组件...',
                 'splash_loading_config': '⚙️ 加载配置...',
@@ -4539,7 +5082,7 @@ class AvalonGameManager:
         
         # Versión
         version_label = ttk.Label(main_frame,
-                                 text="Versión 3.0",
+                                 text="Versión 3.5",
                                  style='Dark.TLabel',
                                  font=('Arial', 9, 'italic'))
         version_label.pack(pady=(0, 15))
@@ -7204,15 +7747,35 @@ class AvalonGameManager:
     def create_main_interface(self):
         """Crear la interfaz principal"""
         main_frame = ttk.Frame(self.root, style='Dark.TFrame')
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=28, pady=(22, 18))
+        main_frame.pack(fill=tk.BOTH, expand=True)
         self.create_content_area(main_frame)
     
     def create_content_area(self, parent):
         """Crear área de contenido principal"""
         content_frame = ttk.Frame(parent, style='Dark.TFrame')
         content_frame.pack(fill=tk.BOTH, expand=True)
+
+        self.navigation_sidebar = tk.Frame(
+            content_frame,
+            bg=self.sidebar_color,
+            width=72,
+            borderwidth=0,
+            highlightthickness=0,
+            relief=tk.FLAT,
+        )
+        self.navigation_sidebar.pack(side=tk.LEFT, anchor=tk.NW)
+        self.create_filter_buttons(self.navigation_sidebar)
+
+        workspace_frame = ttk.Frame(content_frame, style='Dark.TFrame')
+        workspace_frame.pack(
+            side=tk.LEFT,
+            fill=tk.BOTH,
+            expand=True,
+            padx=(28, 28),
+            pady=(22, 18),
+        )
         
-        header_frame = ttk.Frame(content_frame, style='Dark.TFrame')
+        header_frame = ttk.Frame(workspace_frame, style='Dark.TFrame')
         header_frame.pack(fill=tk.X, pady=(0, 18))
 
         brand_frame = ttk.Frame(header_frame, style='Dark.TFrame')
@@ -7221,68 +7784,80 @@ class AvalonGameManager:
         brand_frame.pack_propagate(False)
         self.create_search_bar(brand_frame)
 
-        toolbar = ttk.Frame(header_frame, style='Dark.TFrame')
-        toolbar.pack(fill=tk.X)
-        self.create_filter_buttons(toolbar)
+        self.create_scrollable_games_area(workspace_frame)
 
-        self.create_scrollable_games_area(content_frame)
+    def confirm_manual_update(self):
+        """Pedir confirmación antes de iniciar una actualización manual."""
+        if not self.available_update:
+            return
+
+        if self.update_window and self.update_window._window_exists():
+            self.update_window.root.lift()
+            return
+
+        confirmed = messagebox.askyesno(
+            "Actualizar AVILON",
+            (
+                "Hay una nueva versión de AVILON "
+                f"({self.available_update['version']}).\n\n"
+                "¿Quieres descargarla e instalarla ahora?"
+            ),
+            parent=self.root,
+        )
+        if not confirmed:
+            return
+
+        def update_window_closed():
+            self.update_window = None
+            if (
+                hasattr(self, 'update_button')
+                and self.update_button.winfo_exists()
+            ):
+                self.update_button.configure(state="normal")
+
+        if hasattr(self, 'update_button') and self.update_button.winfo_exists():
+            self.update_button.configure(state="disabled")
+
+        self.update_window = UpdateWindow(
+            self.available_update,
+            on_later=update_window_closed,
+            parent=self.root,
+            on_prepare_install=self.on_closing,
+        )
+        self.update_window.show()
     
     def create_filter_buttons(self, parent):
-        """Crear filtros compactos alineados a la derecha de la biblioteca."""
-        total_count = len(self.games)
-        favorites_count = len([game for game in self.games if game.get('favorite', False)])
-        recent_count = sum(1 for game in self.games if game.get('last_opened_at'))
+        """Crear la navegación vertical de filtros con iconos sin etiquetas."""
         self.filter_frame = tk.Frame(
             parent,
-            bg=self.colors['bg_dark'],
+            bg=self.sidebar_color,
             padx=0,
             pady=0,
         )
-        self.filter_frame.pack(side=tk.RIGHT, anchor=tk.E)
+        self.filter_frame.pack(fill=tk.X, padx=11, pady=(16, 12))
 
-        self.all_button = tk.Button(
-            self.filter_frame,
-            text=f"{self.get_text('all_games')}   {total_count}",
-            font=(self.ui_font_family, 10, 'bold'),
-            relief='flat',
-            bd=0,
-            highlightthickness=0,
-            padx=16,
-            pady=8,
-            cursor='hand2',
-            command=lambda: self.set_favorites_filter('all'),
+        self.filter_buttons = {}
+        filter_options = (
+            ('all', 'all_button'),
+            ('favorites', 'favorites_button'),
+            ('recent', 'recent_button'),
         )
-        self.all_button.pack(side=tk.LEFT)
-
-        self.favorites_button = tk.Button(
-            self.filter_frame,
-            text=f"{self.get_text('favorites')}   {favorites_count}",
-            font=(self.ui_font_family, 10, 'bold'),
-            relief='flat',
-            bd=0,
-            highlightthickness=0,
-            padx=16,
-            pady=8,
-            cursor='hand2',
-            command=lambda: self.set_favorites_filter('favorites'),
-        )
-        self.favorites_button.pack(side=tk.LEFT)
-
-        self.recent_button = tk.Button(
-            self.filter_frame,
-            text=f"{self.get_text('recent')}   {recent_count}",
-            font=(self.ui_font_family, 10, 'bold'),
-            relief='flat',
-            bd=0,
-            highlightthickness=0,
-            padx=16,
-            pady=8,
-            cursor='hand2',
-            command=lambda: self.set_favorites_filter('recent'),
-        )
-        self.recent_button.pack(side=tk.LEFT)
-
-        for button in (self.all_button, self.favorites_button, self.recent_button):
+        for filter_name, attribute_name in filter_options:
+            button = tk.Canvas(
+                self.filter_frame,
+                width=48,
+                height=48,
+                bg=self.sidebar_color,
+                highlightthickness=0,
+                bd=0,
+                cursor='hand2',
+                takefocus=True,
+            )
+            button.pack(pady=5)
+            button.bind(
+                '<Button-1>',
+                lambda event, selected=filter_name: self.set_favorites_filter(selected),
+            )
             button.bind(
                 '<Enter>',
                 lambda event, item=button: self._set_filter_button_hover(item, True),
@@ -7291,32 +7866,91 @@ class AvalonGameManager:
                 '<Leave>',
                 lambda event, item=button: self._set_filter_button_hover(item, False),
             )
+            button.bind(
+                '<Return>',
+                lambda event, selected=filter_name: self.set_favorites_filter(selected),
+            )
+            self.filter_buttons[filter_name] = button
+            setattr(self, attribute_name, button)
+
         self._refresh_filter_button_styles()
 
     def _set_filter_button_hover(self, button, hovered):
-        selected_button = {
-            'all': self.all_button,
-            'favorites': self.favorites_button,
-            'recent': self.recent_button,
-        }.get(self.favorites_filter, self.all_button)
-        if button is selected_button:
-            background = self.colors['accent_hover'] if hovered else self.colors['accent']
-            foreground = self.colors['bg_dark']
+        filter_name = next(
+            (
+                name for name, filter_button in self.filter_buttons.items()
+                if filter_button is button
+            ),
+            None,
+        )
+        if filter_name:
+            self._draw_filter_button(filter_name, hovered)
+
+    def _draw_filter_button(self, filter_name, hovered=False):
+        """Dibujar el icono y el estado de selección de un filtro."""
+        button = self.filter_buttons.get(filter_name)
+        if not button or not button.winfo_exists():
+            return
+
+        selected = self.favorites_filter == filter_name
+        background = (
+            self.colors['bg_medium'] if selected
+            else self.colors['bg_light'] if hovered
+            else self.sidebar_color
+        )
+        icon_color = self.colors['accent'] if selected else self.colors['text_secondary']
+        button.configure(bg=self.sidebar_color)
+        button.delete('all')
+
+        if selected:
+            button.create_rectangle(
+                0, 9, 4, 39,
+                fill=self.colors['accent'],
+                outline='',
+            )
+        button.create_polygon(
+            7, 5, 41, 5, 45, 9, 45, 39, 41, 43, 7, 43, 3, 39, 3, 9,
+            smooth=True,
+            fill=background,
+            outline='',
+        )
+
+        if filter_name == 'all':
+            for x1, y1, x2, y2 in (
+                (14, 15, 21, 33),
+                (22, 12, 29, 33),
+                (30, 17, 36, 33),
+            ):
+                button.create_rectangle(
+                    x1, y1, x2, y2,
+                    fill='',
+                    outline=icon_color,
+                    width=2,
+                )
+            button.create_line(13, 35, 37, 35, fill=icon_color, width=2)
+        elif filter_name == 'favorites':
+            button.create_polygon(
+                24, 12, 27.5, 20, 36, 20.8, 29.5, 26.4,
+                31.5, 35, 24, 30.5, 16.5, 35, 18.5, 26.4,
+                12, 20.8, 20.5, 20,
+                fill='',
+                outline=icon_color,
+                width=2,
+            )
         else:
-            background = self.colors['bg_medium'] if hovered else self.colors['bg_light']
-            foreground = self.colors['text_secondary']
-        button.configure(bg=background, fg=foreground, activebackground=background,
-                         activeforeground=foreground)
+            button.create_oval(
+                14, 13, 34, 33,
+                outline=icon_color,
+                width=2,
+            )
+            button.create_line(24, 17, 24, 23, fill=icon_color, width=2)
+            button.create_line(24, 23, 29, 26, fill=icon_color, width=2)
 
     def _refresh_filter_button_styles(self):
-        if not all(
-            hasattr(self, name) and getattr(self, name).winfo_exists()
-            for name in ('all_button', 'favorites_button', 'recent_button')
-        ):
+        if not getattr(self, 'filter_buttons', None):
             return
-        self._set_filter_button_hover(self.all_button, False)
-        self._set_filter_button_hover(self.favorites_button, False)
-        self._set_filter_button_hover(self.recent_button, False)
+        for filter_name in self.filter_buttons:
+            self._draw_filter_button(filter_name)
     
     def create_search_bar(self, parent):
         """Crear barra de búsqueda mejorada con efectos y transiciones"""
@@ -7326,6 +7960,37 @@ class AvalonGameManager:
         
         container = ttk.Frame(parent, style='Dark.TFrame')
         container.pack(side=tk.RIGHT)
+
+        if self.available_update:
+            self.update_button = tk.Button(
+                container,
+                text="↓",
+                font=(self.ui_font_family, 17, 'bold'),
+                bg=self.colors['bg_dark'],
+                fg='#2ea043',
+                activebackground=self.colors['bg_medium'],
+                activeforeground='#3fb950',
+                relief='flat',
+                bd=0,
+                width=2,
+                cursor='hand2',
+                command=self.confirm_manual_update,
+            )
+            self.update_button.pack(side=tk.RIGHT, anchor=tk.N, padx=(0, 2))
+            self.update_button.bind(
+                '<Enter>',
+                lambda event: self.update_button.configure(
+                    fg='#3fb950',
+                    bg=self.colors['bg_medium'],
+                ),
+            )
+            self.update_button.bind(
+                '<Leave>',
+                lambda event: self.update_button.configure(
+                    fg='#2ea043',
+                    bg=self.colors['bg_dark'],
+                ),
+            )
 
         self.search_toggle_button = tk.Canvas(
             container,
@@ -7538,6 +8203,16 @@ class AvalonGameManager:
         if hasattr(self, 'search_toggle_button') and self.search_toggle_button.winfo_exists():
             self.search_toggle_button.configure(bg=self.colors['bg_dark'])
             self._draw_search_toggle_icon(self.colors['text_primary'])
+
+        if hasattr(self, 'navigation_sidebar') and self.navigation_sidebar.winfo_exists():
+            self.navigation_sidebar.configure(
+                bg=self.sidebar_color,
+            )
+            self.filter_frame.configure(bg=self.sidebar_color)
+            self._refresh_filter_button_styles()
+
+        if hasattr(self, 'update_button') and self.update_button.winfo_exists():
+            self.update_button.configure(bg=self.colors['bg_dark'])
 
         if hasattr(self, 'search_entry') and self.search_entry.winfo_exists():
             # Configurar colores específicos para cada tema con mejor contraste
@@ -9113,29 +9788,8 @@ class AvalonGameManager:
         temp_window.after(2000, temp_window.destroy)
     
     def update_filter_button_counters(self):
-        """Actualizar contadores en los botones de filtro"""
-        if not hasattr(self, 'all_button') or not self.all_button.winfo_exists():
-            return
-            
-        # Contar favoritos
-        favorites_count = len([game for game in self.games if game.get('favorite', False)])
-        total_count = len(self.games)
-        recent_count = sum(1 for game in self.games if game.get('last_opened_at'))
-        
-        # Actualizar texto de botones con contadores
-        all_text = f"{self.get_text('all_games')}   {total_count}"
-        favorites_text = f"{self.get_text('favorites')}   {favorites_count}"
-        recent_text = f"{self.get_text('recent')}   {recent_count}"
-        
-        # Actualizar botones si existen
-        try:
-            self.all_button.config(text=all_text)
-            self.favorites_button.config(text=favorites_text)
-            self.recent_button.config(text=recent_text)
-            self._refresh_filter_button_styles()
-        except tk.TclError:
-            # Los botones fueron destruidos, no hacer nada
-            pass
+        """Actualizar el estado visual de los iconos de navegación."""
+        self._refresh_filter_button_styles()
 
     def record_game_opened(self, game):
         """Persist the timestamp used to order recently opened games."""
@@ -10610,7 +11264,7 @@ def main():
     def start_main_app():
         """Iniciar la biblioteca local después del splash."""
         root = tk.Tk()
-        AvalonGameManager(root)
+        AvalonGameManager(root, available_update=splash.update_info)
         root.mainloop()
     
     config = load_config_for_splash()
@@ -10624,7 +11278,17 @@ def main():
         pass
     
     splash = SplashScreen(language=language, translations=translations_temp)
-    splash.show(on_complete=start_main_app)
+
+    def on_splash_complete():
+        """Decidir qué hacer después del splash."""
+        if splash.update_info:
+            update_window = UpdateWindow(splash.update_info, on_later=start_main_app)
+            update_window.show()
+        else:
+            start_main_app()
+
+
+    splash.show(on_complete=on_splash_complete)
 
 if __name__ == "__main__":
     main()
